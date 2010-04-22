@@ -69,7 +69,7 @@ void serve(int port)
         while(1) {
                 client_len = sizeof(client_addr);
                 client_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
-                client_fd = accept();
+                client_fd = accept(sock_fd, client_addr, &client_len);
 
                 if (client_fd != 0) {
                         fprintf(stderr, "Invalid client socket address");
