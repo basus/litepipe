@@ -20,7 +20,7 @@
 #ifndef __SERVER_H__
 #define __SERVER_H__
 
-// Port numbers
+// Port numbers (also used as protocol identifiers)
 #define TIME 70001
 #define INFO 70002
 #define HTTP 70003

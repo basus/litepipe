@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "communicator.h"
 #include "server.h"
+#include "protocol.h"
 int serve(int);
 
 //void recv_msg(int);
@@ -30,7 +31,7 @@ int main(int argc, char *argv[]) {
 
 int main()
 {
-        setHandler(handler);
+        setHandler(server_handler);
         issueCommunicationThread(SERVER, NULL, TIME);
         issueCommunicationThread(SERVER, NULL, INFO);
         issueCommunicationThread(SERVER, NULL, HTTP);
@@ -78,7 +79,33 @@ void serve(int port)
                 struct RemoteConnection *client = (struct ClientInfo *) malloc(sizeof(struct RemoteConnection));
                 client->comm_sock_fd = client_fd;
                 client->client_addr = client_addr;
+                client->protocol = port;
 
                 communicate(client);
+        }
+}
+
+void server_handler(int type, void *data)
+{
+        switch(type) {
+        case HANDLE_NEW_CONNECTION:
+                break;
+        case HANDLE_NEW_DATA:
+                struct incomingData *idata = (incomingData *) data;
+                struct RemoteConnection *client = (RemoteConnection *) idata->remoteConnection;
+                
+                switch (client->protocol) {
+                case TIME:
+                        serve_time(data);
+                        break;
+                case INFO:
+                        serve_info(data);
+                        break;
+                case HTTP:
+                        serve_http(data);
+                        break;
+                }
+                break;
+        case HANDLE_CONNECTION_BROKEN:
         }
 }
