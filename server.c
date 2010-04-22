@@ -28,77 +28,57 @@ int main(int argc, char *argv[]) {
 }
 */
 
+int main()
+{
+        setHandler(handler);
+        issueCommunicationThread(SERVER, NULL, TIME);
+        issueCommunicationThread(SERVER, NULL, INFO);
+        issueCommunicationThread(SERVER, NULL, HTTP);
+}
+
 void *serve_thd(void *arg) {
     return (void *) serve((int) arg);
 }
 
-int serve(int port_no) {
-    int sock_fd, comm_sock_fd, clilen;
-    char buffer[256];
-    struct sockaddr_in server_addr, *client_addr;
-    int n;
+void serve(int port)
+{
+        struct addrinfo hints, *servinfo;
+        struct sockaddr_in *client_addr;
+        int sock_fd, client_fd, status, client_len;
+        
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_flags = AI_PASSIVE;
 
-    //open socket
-    sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock_fd < 0)
-        error("ERROR opening socket");
+        if ((status = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
+                fprintf(stderr, "Addres fetch error");
+                exit(1);
+        }
 
-    //clear out the server address
-    bzero((char *) &server_addr, sizeof(server_addr));
+        sock_fd = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
 
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(port_no);
+        if (bind(sock_fd, servinfo->ai_addr, res->ai_addrlen) != 0) {
+                fprintf(stderr, "Socket binding error");
+                exit(1);
+        }
 
-    if (bind(sock_fd, (struct sockaddr *) &server_addr,
-             sizeof(server_addr)) < 0)
-        error("ERROR on binding");
-    listen(sock_fd, 5);
-    for (;;) {
+        listen(sock_fd, 5);
 
+        while(1) {
+                client_len = sizeof(client_addr);
+                client_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
+                client_fd = accept();
 
-        clilen = sizeof(client_addr);
-        client_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
-        comm_sock_fd = accept(sock_fd,
-                              (struct sockaddr *) client_addr,
-                              &clilen);
-        if (comm_sock_fd < 0)
-            error("ERROR on accept");
-        bzero(buffer, 256);
+                if (client_fd != 0) {
+                        fprintf(stderr, "Invalid client socket address");
+                        continue;
+                }
 
-        struct RemoteConnection *clientInfo = (struct ClientInfo *) malloc(sizeof(struct RemoteConnection));
-        clientInfo->comm_sock_fd = comm_sock_fd;
-        clientInfo->client_addr = client_addr;
+                struct RemoteConnection *client = (struct ClientInfo *) malloc(sizeof(struct RemoteConnection));
+                client->comm_sock_fd = client_fd;
+                client->client_addr = client_addr;
 
-        pthread_t *thd = (pthread_t *) malloc(sizeof(pthread_t));
-        int thread_ret = pthread_create(thd, NULL, client_conn_thread, clientInfo);
-        if (thread_ret)
-            puts("Error in thread creation/");
-        //communicate(comm_sock_fd, &client_addr);
-    }
-    //recv_msg(comm_sock_fd);
-
-    //printf("Here is the message: %s\n",buffer);
-    //n = write(comm_sock_fd,"I got your message",18);
-    //if (n < 0)
-    //error("ERROR writing to socket");
-    return 0;
-
-}
-/*
-void issue_serve_thread(int portNo) {
-    pthread_t *thd = (pthread_t *) malloc(sizeof(pthread_t));
-    int thread_ret = pthread_create(thd, NULL, serve_thd, portNo);
-    if (thread_ret)
-        puts("Error in thread creation.");
-}
-*/
-
-void *client_conn_thread(void *_clientInfo) {
-    struct RemoteConnection *clientInfo = (struct RemoteConnection *) _clientInfo;
-    fprintf(stderr, "client thread fd=%d\n", clientInfo->comm_sock_fd);
-    communicate(clientInfo);
-    fprintf(stderr, "client thread exit\n");
-    return NULL;
-
+                communicate(client);
+        }
 }

@@ -20,6 +20,11 @@
 #ifndef __SERVER_H__
 #define __SERVER_H__
 
+// Port numbers
+#define TIME 70001
+#define INFO 70002
+#define HTTP 70003
+
 //void issue_serve_thread(int);
 void *serve_thd(void *);
 #endif
