@@ -23,6 +23,7 @@
 #define COMMUNICATOR_BUF_SIZE 256
 struct RemoteConnection {
     int comm_sock_fd;
+        int protocol;
     struct sockaddr_in *client_addr;
 };
 
