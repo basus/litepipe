@@ -26,5 +26,6 @@
 #define HTTP 70003
 
 //void issue_serve_thread(int);
-void *serve_thd(void *);
+void *serve_thd(int port);
+void server_handler(int type, void *data);
 #endif
