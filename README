@@ -1,0 +1,56 @@
+# Litepipe
+
+Litepipe is a simple data server and corresponding client. It is multithreaded
+and supports multiple protocols. The server is written in C using standard UNIX
+system calls.
+
+## Thread architecture
+
+Litepipe is extensively multithreaded on the server side. Each protocol is
+served by a separate thread (hence three server threads -- one for each
+protocol). Each server then creates a separate thread for each client that
+connects to it. But all requests from a specific client on a specific protocol
+are served by a single thread.
+
+All thread creation is handled by the Communication library (communication.c and
+communication.h).  All network sends and receives are also handled by the Comm
+library. The server and client is responsible for creating and binding sockets
+and establishing connections.
+
+## Protocol support
+
+Litepipe supports three separate protocols:
+
+- Time
+- Information
+- HTTP Lite
+
+### Time
+
+Using the time protocol Litepipe behaves as a simple server. A request is the
+string "time" terminated by a newline character. The response is the standard
+UNIX time (seconds since midnight UTC on January 1, 1970) returned as an
+integer. A more feature rich time protocol is being planned.
+
+### Information
+
+The information protocol allows clients to request for some specific system
+information from the Litepipe server. This is basic system information that will
+not compromise system safety by being exposed to anonymous clients.
+
+A request on the information protocol can be one of the following strings
+terminated by a newline:
+
+HELP -- "help\n"
+VERSION -- "version\n"
+UPTIME -- "uptime\n"
+FILESYSTEMS -- "filesystem\n"
+CPUINFO -- "cpuinfo\n"
+PARTITIONS -- "partitions\n"
+
+The responses are text strings which contain the relevant information. The
+repsonse to unrecognized requests is the same as for the "help" request.
+
+### HTTP Lite
+
+This a simpler version of the standard HTTP protocol
