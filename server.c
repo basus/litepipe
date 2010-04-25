@@ -2,7 +2,7 @@
    The port number is passed as an argument */
 #include "server.h"
 
-int main(int argc, char *argv[])
+int start_server()
 {
         setHandler(&server_handler);
         issueCommunicationThread(SERVER, NULL, TIME);
