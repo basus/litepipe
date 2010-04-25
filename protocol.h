@@ -20,8 +20,19 @@
 #ifndef __PROTOCOL_H__
 #define __PROTOCOL_H__
 
+#include <time.h>
+#include "communicator.h"
+
+#define HELP "help\n"
+#define VERSION "version\n"
+#define UPTIME "uptime\n"
+#define FS "filesystem\n"
+#define CPU "cpuinfo\n"
+#define PART "partitions\n"
+
 void serve_time(void *data);
 void serve_info(void *data);
 void serve_http(void *data);
+void serve_file(char *fname, struct RemoteConnection *client);
 
 #endif
