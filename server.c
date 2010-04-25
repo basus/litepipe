@@ -1,34 +1,6 @@
 /* A simple server in the internet domain using TCP
    The port number is passed as an argument */
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <pthread.h>
-#include <unistd.h>
-#include "communicator.h"
 #include "server.h"
-#include "protocol.h"
-
-//void recv_msg(int);
-
-
-
-/* void *client_conn_thread(void *); */
-
-/*
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-	fprintf(stderr,"ERROR, no port provided\n");
-	exit(1);
-    }
-    int portno = atoi(argv[1]);
-    return serve(portno);
-}
-*/
 
 int main(int argc, char *argv[])
 {
@@ -95,25 +67,28 @@ void *serve_thd(int pt)
 
 void server_handler(int type, void *data)
 {
+        struct IncomingData *idata;
+        struct RemoteConnection client;
+        
         switch(type) {
         case HANDLE_NEW_CONNECTION:
                 break;
         case HANDLE_NEW_DATA:
-                /* struct IncomingData *idata = (IncomingData *) data; */
-                /* struct RemoteConnection *client = (RemoteConnection *) idata->remoteConnection; */
+                idata = (struct IncomingData *) data;
+                client = (struct RemoteConnection) idata->remoteConnection;
                 
-                /* switch (client->protocol) { */
-                /* case TIME: */
-                /*         serve_time(data); */
-                /*         break; */
-                /* case INFO: */
-                /*         serve_info(data); */
-                /*         break; */
-                /* case HTTP: */
-                /*         serve_http(data); */
-                /*         break; */
-                /* } */
-                /* break; */
+                switch (client.protocol) {
+                case TIME:
+                        serve_time(data);
+                        break;
+                case INFO:
+                        serve_info(data);
+                        break;
+                case HTTP:
+                        serve_http(data);
+                        break;
+                }
+                break;
         case HANDLE_CONNECTION_BROKEN:
                 break;
         }

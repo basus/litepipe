@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Berkin Ilbeyi   *
- *   ilbeyib@compute216   *
+ *   Copyright (C) 2010 by Shrutarshi Basu                                 *
+ *   basus@lafayette.edu                                                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -19,6 +19,18 @@
  ***************************************************************************/
 #ifndef __SERVER_H__
 #define __SERVER_H__
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <pthread.h>
+#include <unistd.h>
+#include "communicator.h"
+#include "protocol.h"
 
 // Port numbers (also used as protocol identifiers)
 #define TIME 70001
