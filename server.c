@@ -4,11 +4,19 @@
 
 int start_server()
 {
+        signal(SIGINT, sigint_handler);
         setHandler(&server_handler);
         issueCommunicationThread(SERVER, NULL, TIME);
         issueCommunicationThread(SERVER, NULL, INFO);
         issueCommunicationThread(SERVER, NULL, HTTP);
         while(1);
+}
+
+void sigint_handler(int sig)
+{
+        printf("Now Exiting Litepipe Server.\n");
+        printf("Outstanding requests may go unanswered.\n");
+        exit(0);
 }
 
 void *serve_thd(int pt)

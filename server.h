@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -40,4 +41,5 @@
 //void issue_serve_thread(int);
 void *serve_thd(int port);
 void server_handler(int type, void *data);
+void sigint_handler(int sig);
 #endif
