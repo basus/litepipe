@@ -83,10 +83,16 @@ void server_handler(int type, void *data)
         struct RemoteConnection client;
         
         idata = (struct IncomingData *) data;
-        client = (struct RemoteConnection) idata->remoteConnection;                
+        client = (struct RemoteConnection) idata->remoteConnection;
+        char ip[10];
         
         switch(type) {
         case HANDLE_NEW_CONNECTION:
+                inet_ntop(AF_INET, client.client_addr->sin_addr, ip, 10);
+                printf("New connection acquired.\n");
+                printf("Client is port %d at address %s.\n",
+                       client.client_addr->sin_port,
+                       ip);
                 break;
         case HANDLE_NEW_DATA:
                 switch (client.protocol) {
@@ -104,8 +110,8 @@ void server_handler(int type, void *data)
         case HANDLE_CONNECTION_BROKEN:
                 printf("Connection with client broken.\n");
                 printf("Client was port %d at address %s.\n",
-                       client->client_addr->sin_port,
-                       inet_ntop(client->client_addr->sin_addr));
+                       client.client_addr->sin_port,
+                       ip);
                 pthread_exit(NULL);
                 break;
         }
