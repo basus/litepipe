@@ -49,6 +49,8 @@ void *serve_thd(int pt)
                 fprintf(stderr, "Socket binding error");
                 exit(1);
         }
+        
+        freeaddrinfo(servinfo);        // Done with this information
 
         listen(sock_fd, 5);
         printf("Litepipe server now running on port %d\n", pt);
@@ -71,6 +73,8 @@ void *serve_thd(int pt)
 
                 communicate(client);
         }
+
+        close(sock_fd);
 }
 
 void server_handler(int type, void *data)
@@ -78,13 +82,13 @@ void server_handler(int type, void *data)
         struct IncomingData *idata;
         struct RemoteConnection client;
         
+        idata = (struct IncomingData *) data;
+        client = (struct RemoteConnection) idata->remoteConnection;                
+        
         switch(type) {
         case HANDLE_NEW_CONNECTION:
                 break;
         case HANDLE_NEW_DATA:
-                idata = (struct IncomingData *) data;
-                client = (struct RemoteConnection) idata->remoteConnection;
-                
                 switch (client.protocol) {
                 case TIME:
                         serve_time(data);
@@ -98,6 +102,11 @@ void server_handler(int type, void *data)
                 }
                 break;
         case HANDLE_CONNECTION_BROKEN:
+                printf("Connection with client broken.\n");
+                printf("Client was port %d at address %s.\n",
+                       client->client_addr->sin_port,
+                       inet_ntop(client->client_addr->sin_addr));
+                pthread_exit(NULL);
                 break;
         }
 }
