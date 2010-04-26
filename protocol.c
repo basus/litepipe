@@ -34,7 +34,6 @@ void serve_info(void *idata)
 {
         struct IncomingData *data = (struct IncomingData *) idata;
         char *request = (char *) data->data;
-        FILE *fp;
 
         if (strcmp(request, HELP) == 0) 
                 serve_file("HELP", &(data->remoteConnection));
@@ -54,7 +53,13 @@ void serve_info(void *idata)
 
 void serve_http(void *idata)
 {
-        
+        struct IncomingData *data = (struct IncomingData *) idata;
+        char *request = (char *) data->data;
+
+        if (fopen(request, "r"))
+                serve_file(request, &(data->remoteConnection));
+        else
+                sendData(&(data->remoteConnection), "File not accessible", sizeof(char)*20);
 }
 
 void serve_file(char *filename, struct RemoteConnection *client)
@@ -77,5 +82,5 @@ void serve_file(char *filename, struct RemoteConnection *client)
         fread(buffer, sizeof(char), bytes, infile);
         fclose(infile);
 
-        sendData(client, &buffer, bytes);
+        sendData(client, buffer, bytes);
 }
