@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
         else if (strcmp(argv[1], "client") == 0) {
                 printf("Now starting Litepipe client\n");
                 fflush(stdout);
-                /* start_client(); */
+                start_client();
                 return 0;
         }
         else {

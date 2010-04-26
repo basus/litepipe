@@ -23,12 +23,12 @@
 #include <time.h>
 #include "communicator.h"
 
-#define HELP "help\n"
-#define VERSION "version\n"
-#define UPTIME "uptime\n"
-#define FS "filesystem\n"
-#define CPU "cpuinfo\n"
-#define PART "partitions\n"
+#define HELP "help"
+#define VERSION "version"
+#define UPTIME "uptime"
+#define FS "filesystem"
+#define CPU "cpuinfo"
+#define PART "partitions"
 
 void serve_time(void *data);
 void serve_info(void *data);
