@@ -77,5 +77,5 @@ void serve_file(char *filename, struct RemoteConnection *client)
         fread(buffer, sizeof(char), bytes, infile);
         fclose(infile);
 
-        sendData(client, &buffer, bytes);
+        sendData(client, buffer, bytes);
 }

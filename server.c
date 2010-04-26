@@ -1,15 +1,19 @@
 /* A simple server in the internet domain using TCP
    The port number is passed as an argument */
 #include "server.h"
+#include <pthread.h>
 
 int start_server()
 {
         signal(SIGINT, sigint_handler);
         setHandler(&server_handler);
-        issueCommunicationThread(SERVER, NULL, TIME);
-        issueCommunicationThread(SERVER, NULL, INFO);
-        issueCommunicationThread(SERVER, NULL, HTTP);
-        while(1);
+        pthread_t *timeThr = issueCommunicationThread(SERVER, NULL, TIME);
+        pthread_t *infoThr = issueCommunicationThread(SERVER, NULL, INFO);
+        pthread_t *httpThr = issueCommunicationThread(SERVER, NULL, HTTP);
+        //while(1);
+	pthread_join(*timeThr, NULL);
+	pthread_join(*infoThr, NULL);
+	pthread_join(*httpThr, NULL);
 }
 
 void sigint_handler(int sig)
@@ -70,7 +74,7 @@ void *serve_thd(int pt)
                 struct RemoteConnection *client = (struct RemoteConnection *) malloc(sizeof(struct RemoteConnection));
                 client->comm_sock_fd = client_fd;
                 client->client_addr = client_addr;
-                client->protocol = port;
+                client->protocol = pt;
 
                 communicate(client);
         }
@@ -89,11 +93,11 @@ void server_handler(int type, void *data)
         
         switch(type) {
         case HANDLE_NEW_CONNECTION:
-                inet_ntop(AF_INET, client.client_addr->sin_addr, ip, 10);
+	  //inet_ntop(AF_INET, client.client_addr->sin_addr, ip, 10);
                 printf("New connection acquired.\n");
                 printf("Client is port %d at address %s.\n",
                        client.client_addr->sin_port,
-                       ip);
+                       0);//ip);
                 break;
         case HANDLE_NEW_DATA:
                 switch (client.protocol) {

@@ -1,5 +1,5 @@
 
-#include <pthread.h>
+//#include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -14,23 +14,28 @@
 
 
 
-void send_msg(int);
+
+//void send_msg(int);
 
 void *recv_msg(void *);
 
 void (*handle)(int, void *);
 
 void communicate(struct RemoteConnection *clientInfo) {
-    handle(HANDLE_NEW_CONNECTION, clientInfo);
+    
     pthread_t *receive_thread = (pthread_t *) malloc(sizeof(pthread_t));
     int ret = pthread_create(receive_thread, NULL, recv_msg, clientInfo);
     if (ret)
-        exit(1);
+      error("Cannot create thread.");
+    handle(HANDLE_NEW_CONNECTION, clientInfo);
 }
 
 void sendData(struct RemoteConnection *remoteInfo, void *data, int ndata) {
-    fprintf(stderr, "Sending data on fd=%d\n", remoteInfo->comm_sock_fd);
-    int n = send(remoteInfo->comm_sock_fd, data, ndata, 0);
+  fprintf(stderr, "Sending data on fd=%d ndata=%d \ndata=%s\n", remoteInfo->comm_sock_fd, ndata, data == NULL ? "NULL" : (char *) data);
+    int n = send(remoteInfo->comm_sock_fd, &ndata, 4, 0);
+    if (n < 0)
+        error("ERROR writing to socket");
+    n = send(remoteInfo->comm_sock_fd, data, ndata, 0);
     
     if (n < 0)
         error("ERROR writing to socket");
@@ -58,27 +63,43 @@ void *recv_msg(void *arg) {
              return;
         }
         */
-        int read_len = recv(fd, buf, COMMUNICATOR_BUF_SIZE - 1, 0);
-
-        if (read_len < 0)
+	
+	//first read the number of bytes expected.
+	unsigned int transmission_len;
+	int read_len = recv(fd, &transmission_len, 4, 0);
+	if (read_len < 0)
             error("ERROR reading from socket");
         if (read_len == 0) {
             fprintf(stderr, "Empty message received, breaking. (fd=%d)\n", fd);
             break;
         }
+	if (read_len != 4) 
+	  error("Protocol error: message too short");
 
-        fprintf(stderr, "Incoming message from %s (fd=%d):\n", inet_ntoa(clientInfo->
-                client_addr->sin_addr), fd);
-
-        puts(buf);
-
-        struct IncomingData *data = (struct IncomingData *) malloc(sizeof(struct IncomingData));
+	//create an IncomingData struct
+	struct IncomingData *data = (struct IncomingData *) malloc(sizeof(struct IncomingData));
         data->remoteConnection = *clientInfo;
-        memcpy(data->data, buf, COMMUNICATOR_BUF_SIZE);
-        //we gotta change this:
-        data->ndata = COMMUNICATOR_BUF_SIZE;
+        data->data = malloc(transmission_len);
+        data->ndata = transmission_len;
+
+	for (int i = 0; i < transmission_len; i += read_len) {
+	  read_len = recv(fd, data->data + i, transmission_len - i, 0);
+	  if (read_len < 0)
+            error("ERROR reading from socket");
+	  if (read_len == 0) {
+            fprintf(stderr, "Empty message received, breaking. (fd=%d)\n", fd);
+            break;
+	  }
+	}
+
+
+        fprintf(stderr, "Incoming message from %s (fd=%d) (size=%d):\n", inet_ntoa(clientInfo->client_addr->sin_addr), fd, data->ndata);
+
+        puts(data->data);
+
+        
         handle(HANDLE_NEW_DATA, (void *) data);
-    } while (strcmp(buf, "bye\n")); //TODO: we would like to change this
+    } while (1); 
     //send_msg_str(buf, fd);
     fprintf(stderr, "Terminating the receive loop for fd=%d\n", fd);
     handle(HANDLE_CONNECTION_BROKEN, (void *) clientInfo);
@@ -88,8 +109,8 @@ void *recv_msg(void *arg) {
 }
 
 
-void issueCommunicationThread(int type, char *host, int port) {
-    fprintf(stderr, "Comm thread \n");
+pthread_t *issueCommunicationThread(int type, char *host, int port) {
+  fprintf(stderr, "Comm thread host=%s, port=%d\n", host, port);
     pthread_t *thd = (pthread_t *) malloc(sizeof(pthread_t));
     int thread_ret;
     if (type == SERVER)
@@ -102,6 +123,7 @@ void issueCommunicationThread(int type, char *host, int port) {
     }
     if (thread_ret)
         puts("Error in thread creation.");
+    return thd;
     
 }
 

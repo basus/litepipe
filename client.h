@@ -22,5 +22,5 @@
 #define __CLIENT_H__
 
 void *client_thd(void *);
-
+void start_client();//int argc, char **argv);
 #endif
