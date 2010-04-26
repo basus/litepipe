@@ -57,11 +57,12 @@ void *serve_thd(int pt)
         fflush(stdout);
 
         while(1) {
+                fprintf(stderr, "Waiting for requests\n");
                 client_len = sizeof(client_addr);
                 client_addr = (struct sockaddr_in *) malloc(sizeof(struct sockaddr_in));
                 client_fd = accept(sock_fd, (struct sockaddr *)client_addr, &client_len);
 
-                if (client_fd != 0) {
+                if (client_fd == -1) {
                         fprintf(stderr, "Invalid client socket address");
                         continue;
                 }
