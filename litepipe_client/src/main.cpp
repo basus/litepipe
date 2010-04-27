@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2010 by Shrutarshi Basu                                 *
- *   basus@lafayette.edu                                                   *
+ *   Copyright (C) 2010 by Berkin Ilbeyi,,,   *
+ *   nickrebp@nick-xubuntu   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,24 +17,13 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-#ifndef __SERVER_H__
-#define __SERVER_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <pthread.h>
-#include <unistd.h>
-#include "communicator.h"
-#include "protocol.h"
 
-//void issue_serve_thread(int);
-void *serve_thd(int port);
-void server_handler(int type, void *data);
-void sigint_handler(int sig);
-#endif
+#include "litepipe_client.h"
+
+int main(int argc, char *argv[])
+{
+      
+      litepipe_client::execute();
+}
+

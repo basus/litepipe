@@ -23,6 +23,11 @@
 #include <time.h>
 #include "communicator.h"
 
+// Port numbers (also used as protocol identifiers)
+#define TIME 70001
+#define INFO 70002
+#define HTTP 70003
+
 #define HELP "help"
 #define VERSION "version"
 #define UPTIME "uptime"

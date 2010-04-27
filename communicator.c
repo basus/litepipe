@@ -56,13 +56,6 @@ void *recv_msg(void *arg) {
     fds->events = POLLIN;
     do {
         bzero(buf, strlen(buf));
-        /*
-        poll(fds, 1, -1);
-        if (fds->revents & (POLLERR | POLLHUP | POLLNVAL)) {
-             puts("Connection broken by peer.");
-             return;
-        }
-        */
 	
 	//first read the number of bytes expected.
 	unsigned int transmission_len;
@@ -82,7 +75,8 @@ void *recv_msg(void *arg) {
         data->data = malloc(transmission_len);
         data->ndata = transmission_len;
 
-	for (int i = 0; i < transmission_len; i += read_len) {
+        int i;
+	for (i = 0; i < transmission_len; i += read_len) {
 	  read_len = recv(fd, data->data + i, transmission_len - i, 0);
 	  if (read_len < 0)
             error("ERROR reading from socket");
