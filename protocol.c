@@ -99,13 +99,13 @@ void serve_proc(const char *filename, struct RemoteConnection *client)
         size_t readin;
 
         do {
-                readin = read(fp, buffer, MAX_BUFFER*sizeof(char));
-                write(tmp, buffer, readin);
-                fprintf(stderr, "%d\n", readin);
-        } while(readin == MAX_BUFFER*sizeof(char));
+                readin = fread(buffer, sizeof(char), MAX_BUFFER, fp);
+                fwrite(buffer, sizeof(char), readin, tmp);
+                fprintf(stderr, "%s\n", buffer);
+        } while(readin == MAX_BUFFER);
 
-        close(fp);
-        close(tmp);
+        fclose(fp);
+        fclose(tmp);
 
         serve_file("/tmp/litepipe-server", client);
 }
@@ -130,6 +130,7 @@ void serve_file(const char *filename, struct RemoteConnection *client)
 /* copy all the text into the buffer */
         fread(buffer, sizeof(char), bytes, infile);
         fclose(infile);
+        fprintf(stderr, "tmp has %s\n", buffer);
 
         sendData(client, buffer, bytes);
 }
