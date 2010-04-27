@@ -54,16 +54,46 @@ void serve_info(void *idata)
 void serve_http(void *idata)
 {
         struct IncomingData *data = (struct IncomingData *) idata;
-        char *request = (char *) data->data;
+        const char *request = (const char *) data->data;
 
         if (fopen(request, "r"))
-                serve_file(request, &(data->remoteConnection));
+                if (sanitize_request(request))
+                        serve_file(request, &(data->remoteConnection));
+                else
+                        sendData(&(data->remoteConnection), "File access denied", sizeof(char)*19);
         else
                 sendData(&(data->remoteConnection), "File not accessible", sizeof(char)*20);
 }
 
-void serve_file(char *filename, struct RemoteConnection *client)
+int sanitize_request(const char *request)
 {
+        if ((request[0] == '/') || (request[0] == '.' && request[1] == '.'))
+                return 0;
+
+        int depth = 0;
+        int index = 0;
+        char *dir, req[MAX_FILE_PATH];
+        strcpy(req,request);
+        dir = strtok(req, "/");
+
+        while(dir != NULL) {
+                if (strcmp(dir, ".") == 0);
+                else if (strcmp(dir, "..") == 0)
+                        depth--;
+                else depth++;
+                dir = strtok(NULL,"/");
+        }
+
+        if(depth < 1)
+                return 0;
+        else
+                return 1;
+        
+}
+
+void serve_file(const char *filename, struct RemoteConnection *client)
+{
+        fprintf(stderr, "looking for %s\n", filename);
         char *buffer;
         long bytes;
         FILE *infile = fopen(filename, "r");
