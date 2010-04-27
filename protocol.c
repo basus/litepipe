@@ -38,15 +38,15 @@ void serve_info(void *idata)
         if (strcmp(request, HELP) == 0) 
                 serve_file("HELP", &(data->remoteConnection));
         else if (strcmp(request, VERSION) == 0)
-                serve_file("/proc/version", &(data->remoteConnection));
+                serve_proc("/proc/version", &(data->remoteConnection));
         else if (strcmp(request, UPTIME) == 0)
-                serve_file("/proc/uptime", &(data->remoteConnection));
+                serve_proc("/proc/uptime", &(data->remoteConnection));
         else if (strcmp(request, FS) == 0)
-                serve_file("/proc/filesystems", &(data->remoteConnection));
+                serve_proc("/proc/filesystems", &(data->remoteConnection));
         else if (strcmp(request,CPU) == 0)
-                serve_file("/proc/cpuinfo", &(data->remoteConnection));
+                serve_proc("/proc/cpuinfo", &(data->remoteConnection));
         else if (strcmp(request,PART) == 0)
-                serve_file("/proc/partitions", &(data->remoteConnection));
+                serve_proc("/proc/partitions", &(data->remoteConnection));
         else
                 serve_file("HELP", &(data->remoteConnection));
 }
@@ -89,6 +89,25 @@ int sanitize_request(const char *request)
         else
                 return 1;
         
+}
+
+void serve_proc(const char *filename, struct RemoteConnection *client)
+{
+        FILE *fp = fopen(filename, "r");
+        FILE *tmp = fopen("/tmp/litepipe-server", "w");
+        char buffer[MAX_BUFFER];
+        size_t readin;
+
+        do {
+                readin = read(fp, buffer, MAX_BUFFER*sizeof(char));
+                write(tmp, buffer, readin);
+                fprintf(stderr, "%d\n", readin);
+        } while(readin == MAX_BUFFER*sizeof(char));
+
+        close(fp);
+        close(tmp);
+
+        serve_file("/tmp/litepipe-server", client);
 }
 
 void serve_file(const char *filename, struct RemoteConnection *client)
