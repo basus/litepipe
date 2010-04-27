@@ -21,6 +21,7 @@
 #define __PROTOCOL_H__
 
 #include <time.h>
+#include <string.h>
 #include "communicator.h"
 
 // Port numbers (also used as protocol identifiers)
@@ -35,9 +36,11 @@
 #define CPU "cpuinfo"
 #define PART "partitions"
 
+#define MAX_FILE_PATH 256
+
 void serve_time(void *data);
 void serve_info(void *data);
 void serve_http(void *data);
-void serve_file(char *fname, struct RemoteConnection *client);
+void serve_file(const char *fname, struct RemoteConnection *client);
 
 #endif
