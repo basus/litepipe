@@ -1,9 +1,9 @@
 The Litepipe information server accepts the following requests:
 
-HELP -- "help\n"
-VERSION -- "version\n"
-UPTIME -- "uptime\n"
-FILESYSTEMS -- "filesystem\n"
-CPUINFO -- "cpuinfo\n"
-PARTITIONS -- "partitions\n"
+<a href="help">HELP</a> -- "help"
+<a href="version">VERSION</a> -- "version\n"
+<a href="uptime">UPTIME</a> -- "uptime\n"
+<a href="filesystem">FILESYSTEMS</a> -- "filesystem\n"
+<a href="cpuinfo">CPUINFO</a> -- "cpuinfo\n"
+<a href="partitions">PARTITIONS</a> -- "partitions\n"
 
