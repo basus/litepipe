@@ -143,8 +143,8 @@ void serve_file(const char *filename, char *fileid, struct RemoteConnection *cli
  
 /* grab sufficient memory for the 
    buffer to hold the text and insert null*/
-        fname_len = strlen(fileid);
-        buflen = num_chars+fname_len+1;
+        fname_len = strlen(filename);
+        buflen = num_chars+fname_len+2;
         buffer = (char*)calloc(buflen, sizeof(char));
         buffer[buflen-1] = '\0';
         strcpy(buffer, fileid);        
@@ -155,5 +155,5 @@ void serve_file(const char *filename, char *fileid, struct RemoteConnection *cli
         fprintf(stderr, "fname is %s\n", buffer);
         fprintf(stderr, "tmp has %s\n", buffer+fname_len+1);
 
-        sendData(client, buffer, num_chars+1);
+        sendData(client, buffer, buflen);
 }

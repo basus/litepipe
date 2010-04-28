@@ -2,6 +2,7 @@
    The port number is passed as an argument */
 #include "server.h"
 #include <pthread.h>
+#include <string.h>
 
 int start_server()
 {
@@ -89,15 +90,16 @@ void server_handler(int type, void *data)
         
         idata = (struct IncomingData *) data;
         client = (struct RemoteConnection) idata->remoteConnection;
-        char *ip;
-        
+        //char *ip;
+        //char ip[16];
         switch(type) {
         case HANDLE_NEW_CONNECTION:
-	        ip = (char*)inet_ntoa(client.client_addr->sin_addr);
+	  //char ip[16];
+	  //strcpy(ip, (char*)inet_ntoa(client.client_addr->sin_addr));
                 printf("New connection acquired.\n");
-                printf("Client is port %d at address %s.\n",
-                       client.client_addr->sin_port,
-                       ip);
+                printf("Client is port %d at address .\n",
+                       client.client_addr->sin_port);
+		//,ip);
                 break;
         case HANDLE_NEW_DATA:
                 switch (client.protocol) {
@@ -113,11 +115,11 @@ void server_handler(int type, void *data)
                 }
                 break;
         case HANDLE_CONNECTION_BROKEN:
-                ip = (char*)inet_ntoa(client.client_addr->sin_addr);
+	  //strcpy(ip, (char*)inet_ntoa(client.client_addr->sin_addr));
                 printf("Connection with client broken.\n");
-                printf("Client was port %d at address %s.\n",
-                       client.client_addr->sin_port,
-                       ip);
+                printf("Client was port %d at address .\n",
+                       client.client_addr->sin_port);
+                       //,ip);
                 pthread_exit(NULL);
                 break;
         }
