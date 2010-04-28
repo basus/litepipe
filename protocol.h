@@ -33,7 +33,7 @@
 #define HELP "help"
 #define VERSION "version"
 #define UPTIME "uptime"
-#define FS "filesystem"
+#define FS "filesystems"
 #define CPU "cpuinfo"
 #define PART "partitions"
 
