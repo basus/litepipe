@@ -24,11 +24,12 @@
 #include <string.h>
 #include "communicator.h"
 
-// Port numbers (also used as protocol identifiers)
+/* Port numbers (also used as protocol identifiers) */
 #define TIME 70001
 #define INFO 70002
 #define HTTP 70003
 
+/* Legal information requests */
 #define HELP "help"
 #define VERSION "version"
 #define UPTIME "uptime"
@@ -36,9 +37,12 @@
 #define CPU "cpuinfo"
 #define PART "partitions"
 
+/* Constants */
 #define MAX_FILE_PATH 256
 #define MAX_BUFFER 1024
+#define INTERVAL 1
 
+/* Functions */
 void serve_time(void *data);
 void serve_info(void *data);
 void serve_http(void *data);

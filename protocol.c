@@ -21,6 +21,11 @@
 
 void serve_time(void *idata)
 {
+        /* Serves the time every INTERVAL seconds to the client. The SIGPIPE
+           handler is required to deal with broken connection since the
+           sleep() function blocks the current thread.
+         */
+        
         signal(SIGPIPE, time_client_quit);
         struct IncomingData *data;
         data = (struct IncomingData *) idata;
@@ -31,18 +36,25 @@ void serve_time(void *idata)
         while(1) {
                 seconds = time(NULL);
                 sendData(&(data->remoteConnection), &seconds, sizeof(time_t));
-                sleep(30);
+                sleep(INTERVAL);
         }
 }
 
 void time_client_quit()
 {
-        printf("Time server client quit\n");
+        /* Prints an error message and kills the current thread */
+        
+        fprintf(stderr, "Time server client quit\n");
         pthread_exit(NULL);
 }
 
 void serve_info(void *idata)
 {
+        /* Gathers data from the /proc filesystem according to the client's
+           request and then calls the function to handle actually send the
+           relevant data. The HELP file is sent if the request is unknown.
+         */
+        
         struct IncomingData *data = (struct IncomingData *) idata;
         char *request = (char *) data->data;
 
@@ -64,6 +76,11 @@ void serve_info(void *idata)
 
 void serve_http(void *idata)
 {
+        /* Sends the requested file and sends it if available, sends an error
+           if the file is not present or if the file requested is above the
+           server's current working directory.
+         */
+        
         struct IncomingData *data = (struct IncomingData *) idata;
         const char *request = (const char *) data->data;
 
@@ -78,6 +95,8 @@ void serve_http(void *idata)
 
 int sanitize_request(const char *request)
 {
+        /* Checks if the filename requested is above the current working directory */
+        
         if ((request[0] == '/') || (request[0] == '.' && request[1] == '.'))
                 return 0;
 
@@ -104,6 +123,11 @@ int sanitize_request(const char *request)
 
 void serve_proc(const char *filename, struct RemoteConnection *client)
 {
+        /* Opens up the relevant file in the /proc filesystem and manually writes
+           it to a tmp file which it then sends to the actual file server
+           function (along with an ID string for the particular info fragment)
+         */
+        
         FILE *fp = fopen(filename, "r");
         FILE *tmp = fopen("/tmp/litepipe-server", "w");
         char buffer[MAX_BUFFER];
@@ -123,37 +147,48 @@ void serve_proc(const char *filename, struct RemoteConnection *client)
         strcpy(fnametmp, filename);
         infoname = strtok(fnametmp, "/");
         infoname = strtok(NULL, "/");
-        fprintf(stderr, "Info name is: %s", infoname);
+        fprintf(stderr, "Info name is: %s\n", infoname);
+        fprintf(stderr, "Length of info name is: %d\n", strlen(infoname));
 
         serve_file("/tmp/litepipe-server", infoname, client);
 }
 
 void serve_file(const char *filename, char *fileid, struct RemoteConnection *client)
 {
+        /*
+          Loads the given filename into memory, prepends the file identifier
+          (with null terminator) and then sends the entire data buffer using
+          the common sendData function.
+         */
+        
         char *buffer;
         long num_chars, buflen;
         int fname_len;
         FILE *infile = fopen(filename, "r");
+
+        /* set the file pointer to the end of the file and count bytes*/
         fseek(infile, 0L, SEEK_END);
         num_chars = ftell(infile);
  
-/* reset the file position indicator to 
-   the beginning of the file */
+        /* reset the file position indicator to the beginning of the file */
         fseek(infile, 0L, SEEK_SET);	
  
-/* grab sufficient memory for the 
-   buffer to hold the text and insert null*/
-        fname_len = strlen(filename);
+        /* grab sufficient memory for the buffer to hold the text and insert null*/
+        fname_len = strlen(fileid);
         buflen = num_chars+fname_len+2;
         buffer = (char*)calloc(buflen, sizeof(char));
         buffer[buflen-1] = '\0';
-        strcpy(buffer, fileid);        
 
-/* copy all the text into the buffer */
+        /* copy all the text into the buffer (id then file contents)*/
+        strcpy(buffer, fileid);
         fread(buffer+fname_len+1, sizeof(char), num_chars, infile);
         fclose(infile);
+        
         fprintf(stderr, "fname is %s\n", buffer);
         fprintf(stderr, "tmp has %s\n", buffer+fname_len+1);
+        puts("Now coming from puts");
+        puts(buffer+fname_len+1);
 
+        /* Send to client */
         sendData(client, buffer, buflen);
 }
