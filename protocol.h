@@ -43,6 +43,7 @@ void serve_time(void *data);
 void serve_info(void *data);
 void serve_http(void *data);
 void serve_proc(const char *fname, struct RemoteConnection *client);
-void serve_file(const char *fname, struct RemoteConnection *client);
+void serve_file(const char *fname, char *fileid, struct RemoteConnection *client);
+void time_client_quit();
 
 #endif

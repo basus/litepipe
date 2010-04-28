@@ -21,13 +21,24 @@
 
 void serve_time(void *idata)
 {
+        signal(SIGPIPE, time_client_quit);
         struct IncomingData *data;
         data = (struct IncomingData *) idata;
         
         time_t seconds;
         seconds = time(NULL);
 
-        sendData(&(data->remoteConnection), &seconds, sizeof(time_t));
+        while(1) {
+                seconds = time(NULL);
+                sendData(&(data->remoteConnection), &seconds, sizeof(time_t));
+                sleep(30);
+        }
+}
+
+void time_client_quit()
+{
+        printf("Time server client quit\n");
+        pthread_exit(NULL);
 }
 
 void serve_info(void *idata)
@@ -36,7 +47,7 @@ void serve_info(void *idata)
         char *request = (char *) data->data;
 
         if (strcmp(request, HELP) == 0) 
-                serve_file("HELP", &(data->remoteConnection));
+                serve_file("HELP", "HELP", &(data->remoteConnection));
         else if (strcmp(request, VERSION) == 0)
                 serve_proc("/proc/version", &(data->remoteConnection));
         else if (strcmp(request, UPTIME) == 0)
@@ -48,7 +59,7 @@ void serve_info(void *idata)
         else if (strcmp(request,PART) == 0)
                 serve_proc("/proc/partitions", &(data->remoteConnection));
         else
-                serve_file("HELP", &(data->remoteConnection));
+                serve_file("HELP", "HELP", &(data->remoteConnection));
 }
 
 void serve_http(void *idata)
@@ -58,7 +69,7 @@ void serve_http(void *idata)
 
         if (fopen(request, "r"))
                 if (sanitize_request(request))
-                        serve_file(request, &(data->remoteConnection));
+                        serve_file(request, request, &(data->remoteConnection));
                 else
                         sendData(&(data->remoteConnection), "File access denied", sizeof(char)*19);
         else
@@ -96,6 +107,8 @@ void serve_proc(const char *filename, struct RemoteConnection *client)
         FILE *fp = fopen(filename, "r");
         FILE *tmp = fopen("/tmp/litepipe-server", "w");
         char buffer[MAX_BUFFER];
+        char fnametmp[MAX_FILE_PATH];
+        char *infoname;
         size_t readin;
 
         do {
@@ -107,10 +120,15 @@ void serve_proc(const char *filename, struct RemoteConnection *client)
         fclose(fp);
         fclose(tmp);
 
-        serve_file("/tmp/litepipe-server", client);
+        strcpy(fnametmp, filename);
+        infoname = strtok(fnametmp, "/");
+        infoname = strtok(NULL, "/");
+        fprintf(stderr, "Info name is: %s", infoname);
+
+        serve_file("/tmp/litepipe-server", infoname, client);
 }
 
-void serve_file(const char *filename, struct RemoteConnection *client)
+void serve_file(const char *filename, char *fileid, struct RemoteConnection *client)
 {
         char *buffer;
         long num_chars, buflen;
@@ -125,11 +143,11 @@ void serve_file(const char *filename, struct RemoteConnection *client)
  
 /* grab sufficient memory for the 
    buffer to hold the text and insert null*/
-        fname_len = strlen(filename);
+        fname_len = strlen(fileid);
         buflen = num_chars+fname_len+1;
         buffer = (char*)calloc(buflen, sizeof(char));
         buffer[buflen-1] = '\0';
-        strcpy(buffer, filename);        
+        strcpy(buffer, fileid);        
 
 /* copy all the text into the buffer */
         fread(buffer+fname_len+1, sizeof(char), num_chars, infile);
