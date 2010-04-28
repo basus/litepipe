@@ -49,7 +49,7 @@ void setHandler(void (*)(int status, void *data));
 void communicate(struct RemoteConnection *);
 
 //int send_msg_str(char *, int);
-void sendData(struct RemoteConnection *, void *data, int ndata);
+void sendData(struct RemoteConnection *, const void *data, int ndata);
 
 //host is ignored when type == SERVER
 pthread_t *issueCommunicationThread(int type, char *host, int port);

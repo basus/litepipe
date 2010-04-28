@@ -30,7 +30,7 @@ void communicate(struct RemoteConnection *clientInfo) {
     handle(HANDLE_NEW_CONNECTION, clientInfo);
 }
 
-void sendData(struct RemoteConnection *remoteInfo, void *data, int ndata) {
+void sendData(struct RemoteConnection *remoteInfo, const void *data, int ndata) {
   fprintf(stderr, "Sending data on fd=%d ndata=%d \ndata=%s\n", remoteInfo->comm_sock_fd, ndata, data == NULL ? "NULL" : (char *) data);
     int n = send(remoteInfo->comm_sock_fd, &ndata, 4, 0);
     if (n < 0)

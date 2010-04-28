@@ -122,13 +122,13 @@
       <programargs/>
       <directoryradio>executable</directoryradio>
       <runarguments>
-        <litepipe_client></litepipe_client>
+        <litepipe_client/>
       </runarguments>
       <cwd>
         <litepipe_client>/home/nickrebp/Documents/os/litepipe-client/litepipe_client/..</litepipe_client>
       </cwd>
       <debugarguments>
-        <litepipe_client></litepipe_client>
+        <litepipe_client/>
       </debugarguments>
     </run>
     <general>

@@ -20,4 +20,8 @@ client: client.c communicator.o
 	gcc $(CFLAGS) -c client.c communicator.o -lpthread
 
 clean:
-	rm *.o
+	rm *.o *~
+	cd litepipe_client
+	make clean
+	rm bin/*
+	cd ..
