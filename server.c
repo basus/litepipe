@@ -66,6 +66,7 @@ void *serve_thd(int pt)
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_protocol = 0;
         hints.ai_flags = AI_PASSIVE;
+        sprintf(&port, "%d", pt);
 
         if ((status = getaddrinfo(NULL, &port, &hints, &servinfo)) != 0) {
                 fprintf(stderr, "Address fetch error %s", gai_strerror(status));
