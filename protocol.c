@@ -114,23 +114,24 @@ void serve_file(const char *filename, struct RemoteConnection *client)
 {
         fprintf(stderr, "looking for %s\n", filename);
         char *buffer;
-        long bytes;
+        long num_chars;
         FILE *infile = fopen(filename, "r");
         fseek(infile, 0L, SEEK_END);
-        bytes = ftell(infile);
+        num_chars = ftell(infile);
  
 /* reset the file position indicator to 
    the beginning of the file */
         fseek(infile, 0L, SEEK_SET);	
  
 /* grab sufficient memory for the 
-   buffer to hold the text */
-        buffer = (char*)calloc(bytes, sizeof(char));	
+   buffer to hold the text and insert null*/
+        buffer = (char*)calloc(num_chars+1, sizeof(char));
+        buffer[num_chars] = '\0';
  
 /* copy all the text into the buffer */
-        fread(buffer, sizeof(char), bytes, infile);
+        fread(buffer, sizeof(char), num_chars+1, infile);
         fclose(infile);
         fprintf(stderr, "tmp has %s\n", buffer);
 
-        sendData(client, buffer, bytes);
+        sendData(client, buffer, num_chars+1);
 }
