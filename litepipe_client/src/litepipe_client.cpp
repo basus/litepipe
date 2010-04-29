@@ -375,7 +375,7 @@ void litepipe_client::handleCommunicationEventSlot(int status, void *data) {
                 int dataLen = inData->ndata - fileName.size() - 1;
                 if (requestedResources.find(fileName) != requestedResources.end()) {
                     std::cerr << "resource matched: " << fileName.toStdString() << " size: " << dataLen << std::endl;
-                    textEdit->document()->addResource(requestedResources[fileName], QUrl(fileName), QVariant(QByteArray((const char *) (inData->data + fileName.size() + 1), dataLen - 1)));
+                    textEdit->document()->addResource(requestedResources[fileName], QUrl(fileName), QVariant(QByteArray((const char *) ((char *)inData->data + fileName.size() + 1), dataLen - 1)));
                     requestedResources.erase(fileName);
                     textEdit->setText(textEdit->toHtml());
                 } else {
