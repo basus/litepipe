@@ -51,8 +51,7 @@ litepipe_client::litepipe_client()
     createMenus();
     createToolBars();
     createStatusBar();
-      
-    readSettings();
+
       
       
       
@@ -62,13 +61,26 @@ litepipe_client::litepipe_client()
     timeConn = NULL;
     infoConn = NULL;
     httpConn = NULL;
+    timeThd = NULL;
+    httpThd = NULL;
+    infoThd = NULL;
     
-    httpNode = new PageNode(NULL, NULL, tr("index.html"));
-    infoNode = new PageNode(NULL, NULL, tr("HELP"));
+    hostName = tr("localhost");
+    
+    
+    backAct->setEnabled(FALSE);
+    forwardAct->setEnabled(FALSE);
+    reloadAct->setEnabled(FALSE);
+    infoAct->setEnabled(FALSE);
+    httpAct->setEnabled(FALSE);
+    
+    //httpNode = new PageNode(NULL, NULL, tr("index.html"));
+    //infoNode = new PageNode(NULL, NULL, tr("HELP"));
 
-    mode = 0;
-    setMode(HTTP);
+    //mode = 0;
+    //setMode(HTTP);
     //reload();
+    ignoreConnectChange = FALSE;
 }
 
 
@@ -108,6 +120,43 @@ void litepipe_client::httpActive(bool active) {
         setMode(HTTP);
 }
 
+void litepipe_client::connectToServer(bool active) {
+    if (ignoreConnectChange) {
+        ignoreConnectChange = FALSE;
+        return;
+    }
+    if (active) {  //connect
+        ignoreConnectChange = TRUE;
+        connectAct->setChecked(FALSE);
+        bool ok;
+        QString newHostName = QInputDialog::getText(this, tr("Connect to server"),
+                                            tr("Server name:"), QLineEdit::Normal,
+                                                hostName, &ok);
+        if (ok && !newHostName.isEmpty()) {
+            hostName = newHostName;
+            char *hostChArr = new char[hostName.size()];
+            strcpy(hostChArr, hostName.toStdString().c_str());
+            timeThd = issueCommunicationThread(CLIENT, hostChArr, TIME);
+            infoThd = issueCommunicationThread(CLIENT, hostChArr, INFO);
+            httpThd = issueCommunicationThread(CLIENT, hostChArr, HTTP);
+        }
+    } else {  //disconnect
+        ignoreBadFileDescriptor = TRUE;
+        killCommunication(timeConn);
+        killCommunication(infoConn);
+        killCommunication(httpConn);
+        
+        backAct->setEnabled(FALSE);
+        forwardAct->setEnabled(FALSE);
+        reloadAct->setEnabled(FALSE);
+        infoAct->setEnabled(FALSE);
+        httpAct->setEnabled(FALSE);
+        
+        textEdit->setPlainText(tr(""));
+        
+    }
+}
+
 void HtmlViewer::mousePressEvent(QMouseEvent *event) {
     //std::cout << "mouse event" << std::endl;
     QString anchor = anchorAt(event->pos());
@@ -116,18 +165,9 @@ void HtmlViewer::mousePressEvent(QMouseEvent *event) {
     
     if (!anchor.isEmpty())
         mainWindow->request(anchor);
-    mainWindow->request(TIME, "a");
     QTextEdit::mousePressEvent(event);
 }
-/*
-void litepipe_client::about()
-{
-    QMessageBox::about(this, tr("About Application"),
-                       tr("The <b>Application</b> example demonstrates how to "
-                               "write modern GUI applications using Qt, with a menu bar, "
-                               "toolbars, and a status bar."));
-}
-*/
+
 void litepipe_client::createActions()
 {
     
@@ -163,61 +203,11 @@ void litepipe_client::createActions()
     httpAct->setCheckable(TRUE);
     connect(httpAct, SIGNAL(toggled(bool)), this, SLOT(httpActive(bool)));
     
-    /*
-    newAct = new QAction(QIcon(":/filenew.xpm"), tr("&New"), this);
-    newAct->setShortcut(tr("Ctrl+N"));
-    newAct->setStatusTip(tr("Create a new file"));
-    connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
-
-    openAct = new QAction(QIcon(":/fileopen.xpm"), tr("&Open..."), this);
-    openAct->setShortcut(tr("Ctrl+O"));
-    openAct->setStatusTip(tr("Open an existing file"));
-    connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
-
-    saveAct = new QAction(QIcon(":/filesave.xpm"), tr("&Save"), this);
-    saveAct->setShortcut(tr("Ctrl+S"));
-    saveAct->setStatusTip(tr("Save the document to disk"));
-    connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
-
-    saveAsAct = new QAction(tr("Save &As..."), this);
-    saveAsAct->setStatusTip(tr("Save the document under a new name"));
-    connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
-
-   
-
-    cutAct = new QAction(QIcon(":/editcut.xpm"), tr("Cu&t"), this);
-    cutAct->setShortcut(tr("Ctrl+X"));
-    cutAct->setStatusTip(tr("Cut the current selection's contents to the "
-            "clipboard"));
-    connect(cutAct, SIGNAL(triggered()), textEdit, SLOT(cut()));
-
-    copyAct = new QAction(QIcon(":/editcopy.xpm"), tr("&Copy"), this);
-    copyAct->setShortcut(tr("Ctrl+C"));
-    copyAct->setStatusTip(tr("Copy the current selection's contents to the "
-            "clipboard"));
-    connect(copyAct, SIGNAL(triggered()), textEdit, SLOT(copy()));
-
-    pasteAct = new QAction(QIcon(":/editpaste.xpm"), tr("&Paste"), this);
-    pasteAct->setShortcut(tr("Ctrl+V"));
-    pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
-            "selection"));
-    connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
-
-    aboutAct = new QAction(tr("&About"), this);
-    aboutAct->setStatusTip(tr("Show the application's About box"));
-    connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
-
-    aboutQtAct = new QAction(tr("About &Qt"), this);
-    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
-    connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-
-    cutAct->setEnabled(false);
-    copyAct->setEnabled(false);
-    connect(textEdit, SIGNAL(copyAvailable(bool)),
-            cutAct, SLOT(setEnabled(bool)));
-    connect(textEdit, SIGNAL(copyAvailable(bool)),
-            copyAct, SLOT(setEnabled(bool)));
-    */
+    connectAct = new QAction(QIcon("../images/Internet-48.png"), tr("Co&nnect"), this);
+    connectAct->setShortcut(tr("Ctrl+N"));
+    connectAct->setStatusTip(tr("Connect to the server"));
+    connectAct->setCheckable(TRUE);
+    connect(connectAct, SIGNAL(toggled(bool)), this, SLOT(connectToServer(bool)));
 }
 
 void litepipe_client::createMenus()
@@ -229,27 +219,12 @@ void litepipe_client::createMenus()
     fileMenu->addSeparator();
     fileMenu->addAction(httpAct);
     fileMenu->addAction(infoAct);
-    /*
-    fileMenu->addAction(newAct);
-    fileMenu->addAction(openAct);
-    fileMenu->addAction(saveAct);
-    fileMenu->addAction(saveAsAct);
-    */
+    fileMenu->addSeparator();
+    fileMenu->addAction(connectAct);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
 
-    /*
-    editMenu = menuBar()->addMenu(tr("&Edit"));
-    editMenu->addAction(cutAct);
-    editMenu->addAction(copyAct);
-    editMenu->addAction(pasteAct);
 
-    menuBar()->addSeparator();
-
-    helpMenu = menuBar()->addMenu(tr("&Help"));
-    helpMenu->addAction(aboutAct);
-    helpMenu->addAction(aboutQtAct);
-    */
 }
 
 void litepipe_client::createToolBars()
@@ -260,44 +235,19 @@ void litepipe_client::createToolBars()
     navigationToolBar->addSeparator();
     navigationToolBar->addAction(reloadAct);
     
-    modeToolBar = addToolBar(tr("Mode"));
+    modeToolBar = addToolBar(tr("Connection"));
+    modeToolBar->addAction(connectAct);
+    modeToolBar->addSeparator();
     modeToolBar->addAction(httpAct);
     modeToolBar->addAction(infoAct);
     
-    /*
-    fileToolBar = addToolBar(tr("File"));
-    fileToolBar->addAction(newAct);
-    fileToolBar->addAction(openAct);
-    fileToolBar->addAction(saveAct);
 
-    editToolBar = addToolBar(tr("Edit"));
-    editToolBar->addAction(cutAct);
-    editToolBar->addAction(copyAct);
-    editToolBar->addAction(pasteAct);
-    */
 }
 
 void litepipe_client::createStatusBar()
 {
     statusBar()->showMessage(tr("Ready"));
 }
-
-void litepipe_client::readSettings()
-{
-    QSettings settings("Trolltech", "Application Example");
-    QPoint pos = settings.value("pos", QPoint(200, 200)).toPoint();
-    QSize size = settings.value("size", QSize(400, 400)).toSize();
-    resize(size);
-    move(pos);
-}
-
-void litepipe_client::writeSettings()
-{
-    QSettings settings("Trolltech", "Application Example");
-    settings.setValue("pos", pos());
-    settings.setValue("size", size());
-}
-
 
 
 QString litepipe_client::strippedName(const QString &fullFileName)
@@ -346,9 +296,10 @@ void litepipe_client::request(int protocol, const char *message) {
 
 bool litepipe_client::handleIncomingPage(QString pageName) {
     PageNode **node = (mode == HTTP) ? &httpNode : &infoNode;
-    
+    std::cout << "Handle incoming page: " << pageName.toStdString() << " key: " << navKeyClicked << std::endl;
     if (navKeyClicked == 0) {
-        *node = (*node)->setNext(pageName);
+        if ((*node)->pageName != pageName)
+            *node = (*node)->setNext(pageName);
     } else if (navKeyClicked == BACK) {
         if ((*node)->prev() == NULL || (*node)->prev()->pageName != pageName)
             return FALSE;
@@ -375,7 +326,7 @@ void litepipe_client::handleCommunicationEventSlot(int status, void *data) {
         switch (remote->protocol) {
             case TIME:
                 timeConn = remote;
-                
+                instance->request(TIME, "a");
                 //initialize the timer call here
                 break;
             case INFO:
@@ -385,7 +336,21 @@ void litepipe_client::handleCommunicationEventSlot(int status, void *data) {
                 break;
             case HTTP:
                 httpConn = remote;
-                reload();
+                
+                ignoreConnectChange = TRUE;
+                connectAct->setChecked(TRUE);
+                
+                reloadAct->setEnabled(TRUE);
+                infoAct->setEnabled(TRUE);
+                httpAct->setEnabled(TRUE);
+                
+                httpNode = new PageNode(NULL, NULL, tr("index.html"));
+                infoNode = new PageNode(NULL, NULL, tr("HELP"));
+                
+                mode = 0;
+                setMode(HTTP);
+                
+                //reload();
                 //request(HTTP, "index.html");
                 break;
             default:
@@ -412,9 +377,9 @@ void litepipe_client::handleCommunicationEventSlot(int status, void *data) {
                     std::cerr << "resource matched: " << fileName.toStdString() << " size: " << dataLen << std::endl;
                     textEdit->document()->addResource(requestedResources[fileName], QUrl(fileName), QVariant(QByteArray((const char *) (inData->data + fileName.size() + 1), dataLen - 1)));
                     requestedResources.erase(fileName);
-                    //textEdit->repaint();
-                    reload(); //NOTE: this is a little ugly, but whatever...
+                    textEdit->setText(textEdit->toHtml());
                 } else {
+                    std::cerr << (char *) localBuf << std::endl;
                     if (!handleIncomingPage(fileName))
                         return;
                     textEdit->setText((char*)localBuf);
@@ -424,21 +389,32 @@ void litepipe_client::handleCommunicationEventSlot(int status, void *data) {
             
         }
     } else if (status == HANDLE_CONNECTION_BROKEN) {
+        std::cout << "connection broken handle" << std::endl;
+        connectAct->setChecked(FALSE);
+        /*
+        backAct->setEnabled(FALSE);
+        forwardAct->setEnabled(FALSE);
+        reloadAct->setEnabled(FALSE);
+        infoAct->setEnabled(FALSE);
+        httpAct->setEnabled(FALSE);
         
+        textEdit->setPlainText(tr(""));
+        */
         
+    } else if (status == HANDLE_ERROR) {
+        std::cout << "error handle: " << (char *) data <<  std::endl;
+        if (ignoreBadFileDescriptor && tr((char*) data) == tr("Bad file descriptor"))
+            return;
+        QMessageBox::critical(this, tr("Error"), tr((char *) data));
     }
 }
 
-int litepipe_client::execute() {
-    QApplication app(0, NULL);
+int litepipe_client::execute(int argc, char **argv) {
+    QApplication app(argc, argv);
+    app.setOverrideCursor(Qt::ArrowCursor);
+    setHandler(&litepipe_client::handleCommunicationEvent);
     instance = new litepipe_client();
     instance->show();
-    setHandler(&litepipe_client::handleCommunicationEvent);
-    issueCommunicationThread(CLIENT, "localhost", TIME);
-    issueCommunicationThread(CLIENT, "localhost", INFO);
-    issueCommunicationThread(CLIENT, "localhost", HTTP);
-    
-    instance->request(TIME, "a");
     
     return app.exec();
 }
@@ -455,6 +431,7 @@ QVariant HtmlViewer::loadResource(int type, const QUrl &name) {
 }
 
 HtmlViewer::HtmlViewer(litepipe_client *mainWindow): QTextEdit() {
+    
     this->mainWindow = mainWindow;
 }
 

@@ -42,6 +42,8 @@ class HtmlViewer;
 
 class PageNode;
 
+//struct pthread_t;
+
 class litepipe_client:public QMainWindow
 {
       Q_OBJECT
@@ -51,7 +53,7 @@ public:
       ~litepipe_client();
       void setStatus(QString status);
       
-      static int execute();
+      static int execute(int argc, char **argv);
       static void handleCommunicationEvent(int status, void *data);
       
       void request(int protocol, const char *message); 
@@ -68,6 +70,7 @@ private slots:
     void infoActive(bool);
     void httpActive(bool);
 
+    void connectToServer(bool);
     
       /*
       void newFile();
@@ -86,11 +89,14 @@ signals:
 private:
     
     HtmlViewer *textEdit;
-    QString curFile;
+    QString hostName;
     static litepipe_client *instance;
     struct RemoteConnection *timeConn, *infoConn, *httpConn;
+    pthread_t *timeThd, *infoThd, *httpThd;
     int mode;  
     int navKeyClicked;
+    bool ignoreConnectChange;
+    bool ignoreBadFileDescriptor;
     
     PageNode *httpNode;
     PageNode *infoNode;
@@ -100,12 +106,7 @@ private:
     PageNode *currentNode() {
         return mode == HTTP ? httpNode : infoNode;
     }
-    /*
-    std::list<QString> httpQ;
-    std::list<QString> infoQ;
-    std::list<QString>::iterator *httpQIt;
-    std::list<QString>::iterator *infoQIt;
-    */
+
     
     bool handleIncomingPage(QString pageName);
     
@@ -113,23 +114,15 @@ private:
       void createMenus();
       void createToolBars();
       void createStatusBar();
-      void readSettings();
-      void writeSettings();
-      //bool maybeSave();
-      //void loadFile(const QString &fileName);
-      //bool saveFile(const QString &fileName);
-      //void setCurrentFile(const QString &fileName);
+
       QString strippedName(const QString &fullFileName);
 
       
 
       QMenu *fileMenu;
-      //QMenu *editMenu;
-      //QMenu *helpMenu;
       QToolBar *navigationToolBar;
       QToolBar *modeToolBar;
-      //QToolBar *fileToolBar;
-      //QToolBar *editToolBar;
+
       
       QAction *backAct;
       QAction *forwardAct;
@@ -137,20 +130,7 @@ private:
       QAction *infoAct;
       QAction *httpAct;
       QAction *exitAct;
-      
-      /*
-      QAction *newAct;
-      QAction *openAct;
-      QAction *saveAct;
-      QAction *saveAsAct;
-      
-      QAction *cutAct;
-      QAction *copyAct;
-      QAction *pasteAct;
-      QAction *aboutAct;
-      QAction *aboutQtAct;
-      */
-      
+      QAction *connectAct;
 };
 
 class HtmlViewer: public QTextEdit {

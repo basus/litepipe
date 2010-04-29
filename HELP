@@ -7,7 +7,7 @@ The Litepipe information server accepts the following requests:
 <li><a href="help">HELP</a> -- "help"</li>
 <li><a href="version">VERSION</a> -- "version"</li>
 <li><a href="uptime">UPTIME</a> -- "uptime"</li>
-<li><a href="filesystem">FILESYSTEMS</a> -- "filesystem"</li>
+<li><a href="filesystems">FILESYSTEMS</a> -- "filesystems"</li>
 <li><a href="cpuinfo">CPUINFO</a> -- "cpuinfo"</li>
 <li><a href="partitions">PARTITIONS</a> -- "partitions"</li>
 </ul>

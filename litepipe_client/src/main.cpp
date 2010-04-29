@@ -24,6 +24,6 @@
 int main(int argc, char *argv[])
 {
       
-      litepipe_client::execute();
+      litepipe_client::execute(argc, argv);
 }
 

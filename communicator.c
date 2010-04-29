@@ -7,12 +7,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 #include "communicator.h"
 #include "server.h"
 #include "client.h"
 
-
+#include <signal.h>
 
 
 //void send_msg(int);
@@ -121,7 +122,13 @@ pthread_t *issueCommunicationThread(int type, char *host, int port) {
     
 }
 
+void killCommunication(struct RemoteConnection *conn) {
+    close(conn->comm_sock_fd); //TODO: we might want to have a more elegant way to kill a connection
+    
+}
+
 void error(char *msg) {
     perror(msg);
-    exit(0);
+    handle(HANDLE_ERROR, strerror(errno));
+    pthread_exit(NULL);
 }

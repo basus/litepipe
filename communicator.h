@@ -54,6 +54,8 @@ void sendData(struct RemoteConnection *, const void *data, int ndata);
 //host is ignored when type == SERVER
 pthread_t *issueCommunicationThread(int type, char *host, int port);
 
+void killCommunication(struct RemoteConnection *);
+
 void error(char *msg);
 
 #endif
