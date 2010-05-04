@@ -3,6 +3,7 @@ CFLAGS = -g
 
 litepipe: litepipe.c client.o server.o protocol.o communicator.o
 	gcc $(CFLAGS) -o litepipe litepipe.c client.o server.o protocol.o communicator.o -lpthread
+	./make_client.sh
 
 server: server.c communicator.o protocol.o
 	gcc $(CFLAGS) -c server.c protocol.o communicator.o -lpthread
@@ -21,7 +22,6 @@ client: client.c communicator.o
 
 clean:
 	rm *.o *~
-	cd litepipe_client
-	make clean
-	rm bin/*
-	cd ..
+	./make_client_clean.sh
+	rm litepipe
+	rm litepipe_cl

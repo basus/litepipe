@@ -2,17 +2,17 @@
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
  <DocsAndViews NumberOfDocuments="4" >
-  <Doc0 NumberOfViews="1" URL="file:///home/nickrebp/Documents/os/litepipe-client/litepipe_client/src/litepipe_client.cpp" >
-   <View0 Encoding="" line="375" Type="Source" />
+  <Doc0 NumberOfViews="1" URL="file:///home/nickrebp/Documents/os/litepipe/litepipe/litepipe_client/src/litepipe_client.cpp" >
+   <View0 Encoding="" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///home/nickrebp/Documents/os/litepipe-client/litepipe_client/src/litepipe_client.h" >
+  <Doc1 NumberOfViews="1" URL="file:///home/nickrebp/Documents/os/litepipe/litepipe/litepipe_client/src/litepipe_client.h" >
    <View0 Encoding="" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///home/nickrebp/Documents/os/litepipe-client/litepipe_client/src/main.cpp" >
+  <Doc2 NumberOfViews="1" URL="file:///home/nickrebp/Documents/os/litepipe/litepipe/communicator.c" >
    <View0 Encoding="" Type="Source" />
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///home/nickrebp/Documents/os/litepipe/litepipe/communicator.c" >
-   <View0 Encoding="" line="85" Type="Source" />
+  <Doc3 NumberOfViews="1" URL="file:///home/nickrebp/Documents/os/litepipe/litepipe/communicator.h" >
+   <View0 Encoding="" line="26" Type="Source" />
   </Doc3>
  </DocsAndViews>
  <pluginList>
