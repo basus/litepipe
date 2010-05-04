@@ -1,5 +1,9 @@
+/**
+communicator.c
+Berkin Ilbeyi
 
-//#include <pthread.h>
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -16,14 +20,12 @@
 #include <signal.h>
 
 
-//void send_msg(int);
-
 void *recv_msg(void *);
 
+//the functor to be triggered on an event
 void (*handle)(int, void *);
 
 void communicate(struct RemoteConnection *clientInfo) {
-    
     pthread_t *receive_thread = (pthread_t *) malloc(sizeof(pthread_t));
     int ret = pthread_create(receive_thread, NULL, recv_msg, clientInfo);
     if (ret)
@@ -46,21 +48,22 @@ void setHandler(void (*fun)(int, void *)) {
     handle = fun;
 }
 
-
+//the low level receive function
 void *recv_msg(void *arg) {
-    struct RemoteConnection *clientInfo = (struct ClientInfo *) arg;
+    struct RemoteConnection *clientInfo = (struct RemoteConnection *) arg;
     int fd = clientInfo->comm_sock_fd;
-    const char buf[COMMUNICATOR_BUF_SIZE];
-    bzero(buf, COMMUNICATOR_BUF_SIZE);
+    int read_len;
+    //const char buf[COMMUNICATOR_BUF_SIZE];
+    //bzero(buf, COMMUNICATOR_BUF_SIZE);
     struct pollfd fds[1];
     fds->fd = fd;
     fds->events = POLLIN;
     do {
-        bzero(buf, strlen(buf));
+      //bzero(buf, strlen(buf));
 	
 	//first read the number of bytes expected.
 	unsigned int transmission_len;
-	int read_len = recv(fd, &transmission_len, 4, 0);
+	read_len = recv(fd, &transmission_len, 4, 0);
 	if (read_len < 0)
             error("ERROR reading from socket");
         if (read_len == 0) {
@@ -94,7 +97,7 @@ void *recv_msg(void *arg) {
 
         
         handle(HANDLE_NEW_DATA, (void *) data);
-    } while (1); 
+    } while (read_len); 
     //send_msg_str(buf, fd);
     fprintf(stderr, "Terminating the receive loop for fd=%d\n", fd);
     handle(HANDLE_CONNECTION_BROKEN, (void *) clientInfo);
@@ -123,7 +126,7 @@ pthread_t *issueCommunicationThread(int type, char *host, int port) {
 }
 
 void killCommunication(struct RemoteConnection *conn) {
-    close(conn->comm_sock_fd); //TODO: we might want to have a more elegant way to kill a connection
+    close(conn->comm_sock_fd); 
     
 }
 

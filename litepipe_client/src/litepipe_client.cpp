@@ -176,34 +176,34 @@ void litepipe_client::createActions()
     exitAct->setStatusTip(tr("Exit the application"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
     
-    backAct = new QAction(QIcon("../images/back_3_48.png"), tr("Back"), this);
+    backAct = new QAction(QIcon("images/back_3_48.png"), tr("Back"), this);
     backAct->setShortcut(tr("Alt+Left"));
     backAct->setStatusTip(tr("Go back"));
     connect(backAct, SIGNAL(triggered()), this, SLOT(goBack()));
     
-    forwardAct = new QAction(QIcon("../images/forward_23_48.png"), tr("Forward"), this);
+    forwardAct = new QAction(QIcon("images/forward_23_48.png"), tr("Forward"), this);
     forwardAct->setShortcut(tr("Alt+Right"));
     forwardAct->setStatusTip(tr("Go forward"));
     connect(forwardAct, SIGNAL(triggered()), this, SLOT(goForward()));
     
-    reloadAct = new QAction(QIcon("../images/reload_46_48.png"), tr("&Reload"), this);
+    reloadAct = new QAction(QIcon("images/reload_46_48.png"), tr("&Reload"), this);
     reloadAct->setShortcut(tr("Ctrl+R"));
     reloadAct->setStatusTip(tr("Reload the page"));
     connect(reloadAct, SIGNAL(triggered()), this, SLOT(reload()));
     
-    infoAct = new QAction(QIcon("../images/gear_24_48.png"), tr("&Info Mode"), this);
+    infoAct = new QAction(QIcon("images/gear_24_48.png"), tr("&Info Mode"), this);
     infoAct->setShortcut(tr("Ctrl+I"));
     infoAct->setStatusTip(tr("Get info on the server"));
     infoAct->setCheckable(TRUE);
     connect(infoAct, SIGNAL(toggled(bool)), this, SLOT(infoActive(bool)));
     
-    httpAct = new QAction(QIcon("../images/ftp_1661_48.png"), tr("&HTTP Mode"), this);
+    httpAct = new QAction(QIcon("images/ftp_1661_48.png"), tr("&HTTP Mode"), this);
     httpAct->setShortcut(tr("Ctrl+H"));
     httpAct->setStatusTip(tr("Browse the HTTP"));
     httpAct->setCheckable(TRUE);
     connect(httpAct, SIGNAL(toggled(bool)), this, SLOT(httpActive(bool)));
     
-    connectAct = new QAction(QIcon("../images/Internet-48.png"), tr("Co&nnect"), this);
+    connectAct = new QAction(QIcon("images/Internet-48.png"), tr("Co&nnect"), this);
     connectAct->setShortcut(tr("Ctrl+N"));
     connectAct->setStatusTip(tr("Connect to the server"));
     connectAct->setCheckable(TRUE);
