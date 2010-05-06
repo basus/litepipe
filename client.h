@@ -21,6 +21,9 @@
 #ifndef __CLIENT_H__
 #define __CLIENT_H__
 
+//the client thread that is called from communicator
 void *client_thd(void *);
+
+//starts the basic command line version of the client
 void start_client();//int argc, char **argv);
 #endif

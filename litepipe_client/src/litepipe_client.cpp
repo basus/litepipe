@@ -43,18 +43,20 @@ litepipe_client *litepipe_client::instance = NULL;
 
 litepipe_client::litepipe_client()
 {
+    //HtmlViewer is an extension to QTextEdit, that displays the HTML
     textEdit = new HtmlViewer(this);
     setCentralWidget(textEdit);
     textEdit->setReadOnly(TRUE);
       
+    
+    //create all the gui stuff
     createActions();
     createMenus();
     createToolBars();
     createStatusBar();
 
-      
-      
-      
+    //since Qt is not thread-safe, we use signal-slot mechanism to change the thread
+    //of the call from the communication thread to the gui event loop
     connect(this, SIGNAL(handleCommunicationEventSignal(int, void*)), this, SLOT(handleCommunicationEventSlot(int, void*)));
       
     
@@ -65,21 +67,16 @@ litepipe_client::litepipe_client()
     httpThd = NULL;
     infoThd = NULL;
     
+    //default host
     hostName = tr("localhost");
     
-    
+    //the initial button states
     backAct->setEnabled(FALSE);
     forwardAct->setEnabled(FALSE);
     reloadAct->setEnabled(FALSE);
     infoAct->setEnabled(FALSE);
     httpAct->setEnabled(FALSE);
     
-    //httpNode = new PageNode(NULL, NULL, tr("index.html"));
-    //infoNode = new PageNode(NULL, NULL, tr("HELP"));
-
-    //mode = 0;
-    //setMode(HTTP);
-    //reload();
     ignoreConnectChange = FALSE;
 }
 
@@ -158,10 +155,7 @@ void litepipe_client::connectToServer(bool active) {
 }
 
 void HtmlViewer::mousePressEvent(QMouseEvent *event) {
-    //std::cout << "mouse event" << std::endl;
     QString anchor = anchorAt(event->pos());
-    //if (!anchor.isEmpty())
-    //mainWindow->setStatus(QString("Anchor clicked (%1, %2): %3").arg(event->pos().x()).arg(event->pos().y()).arg(anchor));
     
     if (!anchor.isEmpty())
         mainWindow->request(anchor);
@@ -265,11 +259,14 @@ litepipe_client::~litepipe_client()
 }
 
 void litepipe_client::handleCommunicationEvent(int status, void *data) {
+    //emit the signal which would be caught by handleCommunicationEventSlot,
+    //this lets us change the thread of the call
     emit instance->handleCommunicationEventSignal(status, data);
     
 }
 
 void litepipe_client::request(QString pageName) {
+    //request a new page/resource depending on the currently active protocol.
     request(0, pageName.toStdString().c_str());
 }
 
@@ -297,10 +294,15 @@ void litepipe_client::request(int protocol, const char *message) {
 bool litepipe_client::handleIncomingPage(QString pageName) {
     PageNode **node = (mode == HTTP) ? &httpNode : &infoNode;
     std::cout << "Handle incoming page: " << pageName.toStdString() << " key: " << navKeyClicked << std::endl;
+    
+    //if no navigation key clicked, then simply add the new site to the history
     if (navKeyClicked == 0) {
         if ((*node)->pageName != pageName)
             *node = (*node)->setNext(pageName);
-    } else if (navKeyClicked == BACK) {
+    } 
+    //if a navigation button is clicked, then do not add the site to the history, but
+    //act accordingly
+    else if (navKeyClicked == BACK) {
         if ((*node)->prev() == NULL || (*node)->prev()->pageName != pageName)
             return FALSE;
         *node = (*node)->prev();
@@ -326,13 +328,11 @@ void litepipe_client::handleCommunicationEventSlot(int status, void *data) {
         switch (remote->protocol) {
             case TIME:
                 timeConn = remote;
+                //the time request
                 instance->request(TIME, "a");
-                //initialize the timer call here
                 break;
             case INFO:
                 infoConn = remote;
-                
-                
                 break;
             case HTTP:
                 httpConn = remote;
@@ -344,14 +344,13 @@ void litepipe_client::handleCommunicationEventSlot(int status, void *data) {
                 infoAct->setEnabled(TRUE);
                 httpAct->setEnabled(TRUE);
                 
+                //initial pages
                 httpNode = new PageNode(NULL, NULL, tr("index.html"));
                 infoNode = new PageNode(NULL, NULL, tr("HELP"));
                 
+                //initial mode is HTTP
                 mode = 0;
                 setMode(HTTP);
-                
-                //reload();
-                //request(HTTP, "index.html");
                 break;
             default:
                 break;
@@ -360,47 +359,39 @@ void litepipe_client::handleCommunicationEventSlot(int status, void *data) {
     } else if (status == HANDLE_NEW_DATA) {
         struct IncomingData *inData = (struct IncomingData *) data;
         char *localBuf = (char *) inData->data;
-                //new char[inData->ndata]; //TODO: try again with inData
-        //memcpy(localBuf, inData->data, inData->ndata);
         
+        //if the incoming data is time
         if (inData->remoteConnection.protocol == TIME) {
                 setStatus(tr(ctime((const time_t *) localBuf)));
-                //textEdit->setText(QString("%1").arg());
 
         } else if (inData->remoteConnection.protocol == mode) {
-            
                 std::cerr << (char *) data << std::endl;
                 QString fileName(localBuf);
                 localBuf += fileName.size() + 1;
                 int dataLen = inData->ndata - fileName.size() - 1;
+                //checks if the incoming data matches requested resource
                 if (requestedResources.find(fileName) != requestedResources.end()) {
                     std::cerr << "resource matched: " << fileName.toStdString() << " size: " << dataLen << std::endl;
+                    //adds the resource to the document directly out of byte array 
                     textEdit->document()->addResource(requestedResources[fileName], QUrl(fileName), QVariant(QByteArray((const char *) ((char *)inData->data + fileName.size() + 1), dataLen - 1)));
+                    //the request has been satisfied
                     requestedResources.erase(fileName);
+                    //reset the textEdit to included the recently used image
                     textEdit->setText(textEdit->toHtml());
-                } else {
+                } else { //if the incoming data is html
                     std::cerr << (char *) localBuf << std::endl;
                     if (!handleIncomingPage(fileName))
                         return;
+                    textEdit->document()->clear();
                     textEdit->setText((char*)localBuf);
                     setWindowTitle(fileName);
-                    
                 }
             
         }
     } else if (status == HANDLE_CONNECTION_BROKEN) {
         std::cout << "connection broken handle" << std::endl;
+        //set gui to reflect for the loss of connection
         connectAct->setChecked(FALSE);
-        /*
-        backAct->setEnabled(FALSE);
-        forwardAct->setEnabled(FALSE);
-        reloadAct->setEnabled(FALSE);
-        infoAct->setEnabled(FALSE);
-        httpAct->setEnabled(FALSE);
-        
-        textEdit->setPlainText(tr(""));
-        */
-        
     } else if (status == HANDLE_ERROR) {
         std::cout << "error handle: " << (char *) data <<  std::endl;
         if (ignoreBadFileDescriptor && tr((char*) data) == tr("Bad file descriptor"))
@@ -410,6 +401,7 @@ void litepipe_client::handleCommunicationEventSlot(int status, void *data) {
 }
 
 int litepipe_client::execute(int argc, char **argv) {
+    //initializes the QApplication and constructs the litepipe_client
     QApplication app(argc, argv);
     app.setOverrideCursor(Qt::ArrowCursor);
     setHandler(&litepipe_client::handleCommunicationEvent);
@@ -422,6 +414,7 @@ int litepipe_client::execute(int argc, char **argv) {
 
 QVariant HtmlViewer::loadResource(int type, const QUrl &name) {
     std::cerr << "load resource " << type << " " << name.toString().toStdString() << std::endl;
+    //issues a request for the resource if it is not there
     if (mainWindow->requestedResources.find(name.toString()) ==   mainWindow->requestedResources.end()) {
         mainWindow->requestedResources[name.toString()] = type;
         mainWindow->request(0, name.toString().toStdString().c_str());

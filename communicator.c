@@ -53,14 +53,10 @@ void *recv_msg(void *arg) {
     struct RemoteConnection *clientInfo = (struct RemoteConnection *) arg;
     int fd = clientInfo->comm_sock_fd;
     int read_len;
-    //const char buf[COMMUNICATOR_BUF_SIZE];
-    //bzero(buf, COMMUNICATOR_BUF_SIZE);
     struct pollfd fds[1];
     fds->fd = fd;
     fds->events = POLLIN;
     do {
-      //bzero(buf, strlen(buf));
-	
 	//first read the number of bytes expected.
 	unsigned int transmission_len;
 	read_len = recv(fd, &transmission_len, 4, 0);
@@ -98,7 +94,6 @@ void *recv_msg(void *arg) {
         
         handle(HANDLE_NEW_DATA, (void *) data);
     } while (read_len); 
-    //send_msg_str(buf, fd);
     fprintf(stderr, "Terminating the receive loop for fd=%d\n", fd);
     handle(HANDLE_CONNECTION_BROKEN, (void *) clientInfo);
     if (close(fd))

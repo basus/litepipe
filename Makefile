@@ -1,5 +1,5 @@
 
-CFLAGS = -g
+CFLAGS = 
 
 litepipe: litepipe.c client.o server.o protocol.o communicator.o
 	gcc $(CFLAGS) -o litepipe litepipe.c client.o server.o protocol.o communicator.o -lpthread
