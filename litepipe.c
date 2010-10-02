@@ -23,27 +23,16 @@
 int main(int argc, char *argv[])
 {
         if(argc == 1) {
-                printf("No option specified.\n Please see the README file\n");
+                printf("No option specified. Dropping to text interface\n ");
                 fflush(stdout);
+                cli_interactive();
                 return 1;
         }
 
-        if(strcmp(argv[1], "server") == 0) {
-                printf("Now starting Litepipe server\n");
-                fflush(stdout);
-                start_server();
-                return 0;
-        }
-        else if (strcmp(argv[1], "client") == 0) {
-                printf("Now starting Litepipe client\n");
-                fflush(stdout);
-                start_client();
-                return 0;
-        }
-        else {
-                printf("Unrecognized option. Please see the README file\n");
-                fflush(stdout);
+        if(argc > 1) {
+                int server_id;
+                server_id = cli(argc, argv);
+                waitpid(server_id);
                 return 1;
         }
-        
 }

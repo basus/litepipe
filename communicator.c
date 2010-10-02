@@ -1,8 +1,22 @@
-/**
-communicator.c
-Berkin Ilbeyi
-
- */
+/***************************************************************************
+ *   Copyright (C) 2010 by Berkin Ilbeyi                                   *
+ *   ilbeyib@lafayette.edu                                                 *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,21 +25,14 @@ Berkin Ilbeyi
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
 #include <errno.h>
 
 #include "communicator.h"
 #include "server.h"
 #include "client.h"
 
-#include <signal.h>
-
-
-void *recv_msg(void *);
-
-//the functor to be triggered on an event
-void (*handle)(int, void *);
-
-void communicate(struct RemoteConnection *clientInfo) {
+void communicate(struct client *clientInfo) {
     pthread_t *receive_thread = (pthread_t *) malloc(sizeof(pthread_t));
     int ret = pthread_create(receive_thread, NULL, recv_msg, clientInfo);
     if (ret)
@@ -33,7 +40,7 @@ void communicate(struct RemoteConnection *clientInfo) {
     handle(HANDLE_NEW_CONNECTION, clientInfo);
 }
 
-void sendData(struct RemoteConnection *remoteInfo, const void *data, int ndata) {
+void send_data(struct RemoteConnection *remoteInfo, const void *data, int ndata) {
   fprintf(stderr, "Sending data on fd=%d ndata=%d \ndata=%s\n", remoteInfo->comm_sock_fd, ndata, data == NULL ? "NULL" : (char *) data);
     int n = send(remoteInfo->comm_sock_fd, &ndata, 4, 0);
     if (n < 0)
@@ -44,7 +51,7 @@ void sendData(struct RemoteConnection *remoteInfo, const void *data, int ndata) 
         error("ERROR writing to socket");
 }
 
-void setHandler(void (*fun)(int, void *)) {
+void set_handler(void (*fun)(int, void *)) {
     handle = fun;
 }
 

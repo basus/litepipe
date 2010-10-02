@@ -36,13 +36,9 @@ are defined as preprocessor defines with the HANDLE_ prefix below.
 
 //structure represents a remote connection, that is a server if this is
 //a client, or vice versa. 
-struct RemoteConnection {
-  //the fd of the socket
-    int comm_sock_fd;
-  //the protocol used for this communication
-    int protocol;
-  //the posix defined sockaddr_in struct
-    struct sockaddr_in *client_addr;
+struct client {
+    int socket;                          //the fd of the socket
+    struct sockaddr_storage *addr;       //the posix defined sockaddr_in struct
 };
 
 //wrapper structure for incoming data, to be passed on an incoming data to
@@ -55,13 +51,12 @@ struct IncomingData {
     unsigned int ndata;
 };
 
-///to be used for client_thd in client.c, representing the server address
-struct ServerAddress {
-  //the host name
-    char *host;
-  //the port of the server
-    int port;
-};
+
+
+void *recv_msg(void *);
+
+//the functor to be triggered on an event
+void (*handle)(int, void *);
 
 //the function to set the handle functor to accept events from this.
 void setHandler(void (*)(int status, void *data));

@@ -38,4 +38,8 @@
 void *serve_thd(int port);
 void server_handler(int type, void *data);
 void sigint_handler(int sig);
+
+int start_server(int protocol, long port);
+int get_socket(int port);
+void recv_conn(int socket);
 #endif
