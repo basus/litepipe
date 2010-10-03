@@ -20,17 +20,32 @@
 
 #include "server.h"
 
-int start_server(int protocol, int port)
+pthread_t lp_spawn(int port, void (*responder)(void*), int backlog)
 {
         pid_t pid;
-        int socket;
+        int socket, server_success;
+        struct listener_data *data;
+        pthread_t *server;
 
-        pid = fork();
-        if (pid == 0){
-                get_socket(port);
-                listen(socket, BACKLOG);
-                recv_conn(socket);
+        /* Create a socket for the port */
+        socket = get_socket(port);
+
+        /* Create a thread and assign the listener to it */
+        data = (listen_data *) malloc(sizeof(listen_data));
+        data->socket = socket;
+        data->backlog = backlog;
+        data->responder = responder;
+        
+        server = (pthread_t *) malloc(sizeof(pthread_t));
+        server_success = pthread_create(server, NULL, listener, data);
+
+        if (server_id == 0) {
+                return server;
+        } else {
+                fprintf(stderr, "Server thread error");
+                return 0;
         }
+        
 }
 
 int get_socket(int pt)
@@ -72,20 +87,24 @@ int get_socket(int pt)
         return sock_fd;
 }
 
-void recv_conn(int socket)
+void listener(void *data)
 {
         /* Accepts connections from clients and spins of a thread to communicate */
         /* with it */
         
         struct sockaddr_storage *client_addr;
         struct client *cl;
+        struct listener_data *ldata;
         int client_len, client_fd;
+
+        ldata = (struct listener_data*)data;
+        listen(ldata->socket, ldata->backlog);
         
         while(1) {
 
                 client_len = sizeof(client_addr);
                 client_addr = (struct sockaddr_storage *) malloc(client_len);
-                client_fd = accept(socket, (struct sockaddr *)client_addr, &client_len);
+                client_fd = accept(ldata->socket, (struct sockaddr *)client_addr, &client_len);
 
                 if (client_fd == -1) {
                         fprintf(stderr, "Invalid client socket address");
@@ -97,7 +116,7 @@ void recv_conn(int socket)
                 cl->client_addr = client_addr;
 
                 pthread_t *receiver = (pthread_t *) malloc(sizeof(pthread_t));
-                int thd = pthread_create(receiver, NULL, recv_msg, client);
+                int thd = pthread_create(receiver, NULL, ldata->responder, (void *)cl);
         }
 }
 

@@ -34,6 +34,12 @@
 #include "communicator.h"
 #include "protocol.h"
 
+// Structs
+struct listener_data {
+        int socket, backlog;
+        void (*responder) (void*);
+};
+
 //void issue_serve_thread(int);
 void *serve_thd(int port);
 void server_handler(int type, void *data);
