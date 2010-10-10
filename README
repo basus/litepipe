@@ -1,56 +1,57 @@
 # Litepipe
 
-Litepipe is a simple data server and corresponding client. It is multithreaded
-and supports multiple protocols. The server is written in C using standard UNIX
-system calls.
+Litepipe is a multithreaded server library. Litepipe handles the creation of
+sockets and the listening for incoming connection. Once a client makes a
+connection Litepipe spawns a separate thread to handle the connection. Client
+code provides the port number to listen on, the number of connections in the
+listening queue (the backlog) and a function that handles communication with a
+single client.
 
-## Thread architecture
+## Using Litepipe
 
-Litepipe is extensively multithreaded on the server side. Each protocol is
-served by a separate thread (hence three server threads -- one for each
-protocol). Each server then creates a separate thread for each client that
-connects to it. But all requests from a specific client on a specific protocol
-are served by a single thread.
+I've included a simple echo server that uses the Litepipe library to listen on a
+port and echo back whatever it receives. The Makefile contains rules to build
+Litepipe as a basic object file, a static library and a shared library.
 
-All thread creation is handled by the Communication library (communication.c and
-communication.h).  All network sends and receives are also handled by the Comm
-library. The server and client is responsible for creating and binding sockets
-and establishing connections.
+The simplest way to use Litepipe would be to just copy the litepipe.c and
+litepipe.h files into your project and compile them in as necessary (including
+the litepipe.h header).
 
-## Protocol support
+The lp_spawn() function takes 3 parameters: an integer for the port number, an
+integer for the backlog of clients to listen to and finally a function pointer
+of the form void*(*)(void*) (that communicates with the client). If it can
+succesfully create the sockets and wait for connection, it returns a pointer to
+thread that is currently listening. If there was an error it returns -1 (and
+error messages are printed to stderr).
 
-Litepipe supports three separate protocols:
+The communicator function gets a single argument -- a void pointer that points
+to an integer which is the file descriptor for the client socket (and can be
+used for the send() and recv() functions). The communicator is responsible for
+all actual communication with the client. Again, take a look at the echo server
+for a simple example. 
 
-- Time
-- Information
-- HTTP Lite
+## A brief history
 
-### Time
+Litepipe began as a project for the Operating Systems class at Lafayette College
+in Spring 2010. The project was to create a multithreaded server and
+corresponding client to send data over a network. One of the requirements was to
+have the threading and networking code be separate from the rest of the
+application. For the original version, Berkin Ilbeyi wrote most of the library
+and the client and I built the server. After the project was over I decided to
+take the server and library components and rebuild them into a reusable library
+for building thread-per-client servers.
 
-Using the time protocol Litepipe behaves as a simple server. A request is the
-string "time" terminated by a newline character. The response is the standard
-UNIX time (seconds since midnight UTC on January 1, 1970) returned as an
-integer. A more feature rich time protocol is being planned.
+The current code bears little resemblance to the original project code. In
+particular, the library does not handle sending and receiving messages over the
+network -- only accepting connections.
 
-### Information
+## What can I use Litepipe for?
 
-The information protocol allows clients to request for some specific system
-information from the Litepipe server. This is basic system information that will
-not compromise system safety by being exposed to anonymous clients.
+Litepipe spawns a thread for each client, which means that if you have thousands
+of clients, you could overwhelm the CPU. Litepipe is probably more suited for
+applications with a smaller number of clients that stay connected for a longer
+amount of time. Applications could include private chat or file servers.
 
-A request on the information protocol can be one of the following strings
-terminated by a newline:
-
-HELP -- "help\n"
-VERSION -- "version\n"
-UPTIME -- "uptime\n"
-FILESYSTEMS -- "filesystem\n"
-CPUINFO -- "cpuinfo\n"
-PARTITIONS -- "partitions\n"
-
-The responses are text strings which contain the relevant information. The
-repsonse to unrecognized requests is the same as for the "help" request.
-
-### HTTP Lite
-
-This a simpler version of the standard HTTP protocol
+Honestly though, I'm leaving to others to come up with uses for it. It seemed
+like an interesting experiment to create something potentially useful and I had
+a good learning experience doing it. Enjoy!
