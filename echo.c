@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include "server.h"
-/* #include "server.c" */
 
 #define BUFSIZE 1024
 #define ECHO_PORT 20110
@@ -10,6 +10,7 @@
 
 void* echo_server(void *conf)
 {
+        /* Echo server to respond to a single client */
         int *socket, msg_len;
         char *buffer;
 
@@ -28,6 +29,7 @@ void* echo_server(void *conf)
 
                 send(*socket, (char *)buffer, msg_len, 0);
 
+                /* Close the connection on an empty message */
                 if (buffer[1] == '\n') {
                         printf("Closing client connection. Received empty Message");
                         fflush(stdout);
@@ -38,14 +40,10 @@ void* echo_server(void *conf)
         return (void *)buffer;
 }
 
-void echo() {
+int main()
+{
         if (lp_spawn(ECHO_PORT, &echo_server, ECHO_BACKLOG) != 0) {
                 printf("Echo server running on port %d\n", ECHO_PORT);
         }
-}
-
-int main(void)
-{
-        echo();
         return 0;
 }

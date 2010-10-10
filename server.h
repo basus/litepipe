@@ -20,32 +20,14 @@
 #ifndef __SERVER_H__
 #define __SERVER_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <pthread.h>
-#include <unistd.h>
 
 // Structs
-struct listener_data {
+struct responder {
         int socket, backlog;
-        void* (*responder) (void*);
+        void* (*handler) (void*);
 };
 
-
-pthread_t *lp_spawn(int port, void*(*responder)(void*), int backlog);
-int start_server(int protocol, long port);
+// Functions
+pthread_t *lp_spawn(int port, void*(*handler)(void*), int backlog);
 void listener(void *data);
-//void issue_serve_thread(int);
-/* void *serve_thd(int port); */
-/* void server_handler(int type, void *data); */
-/* void sigint_handler(int sig); */
-
-/* int get_socket(int port); */
-/* void recv_conn(int socket); */
 #endif
