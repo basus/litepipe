@@ -31,21 +31,21 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#include "communicator.h"
-#include "protocol.h"
-
 // Structs
 struct listener_data {
         int socket, backlog;
-        void (*responder) (void*);
+        void* (*responder) (void*);
 };
 
-//void issue_serve_thread(int);
-void *serve_thd(int port);
-void server_handler(int type, void *data);
-void sigint_handler(int sig);
 
+pthread_t *lp_spawn(int port, void*(*responder)(void*), int backlog);
 int start_server(int protocol, long port);
-int get_socket(int port);
-void recv_conn(int socket);
+void listener(void *data);
+//void issue_serve_thread(int);
+/* void *serve_thd(int port); */
+/* void server_handler(int type, void *data); */
+/* void sigint_handler(int sig); */
+
+/* int get_socket(int port); */
+/* void recv_conn(int socket); */
 #endif

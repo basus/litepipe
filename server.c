@@ -18,9 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <pthread.h>
 #include "server.h"
 
-pthread_t lp_spawn(int port, void (*responder)(void*), int backlog)
+pthread_t *lp_spawn(int port, void* (*responder)(void*), int backlog)
 {
         pid_t pid;
         int socket, server_success;
@@ -31,15 +32,16 @@ pthread_t lp_spawn(int port, void (*responder)(void*), int backlog)
         socket = get_socket(port);
 
         /* Create a thread and assign the listener to it */
-        data = (listen_data *) malloc(sizeof(listen_data));
+        data = (struct listener_data *) malloc(sizeof(*data));
         data->socket = socket;
         data->backlog = backlog;
         data->responder = responder;
         
         server = (pthread_t *) malloc(sizeof(pthread_t));
-        server_success = pthread_create(server, NULL, listener, data);
+        server_success = pthread_create(server, NULL, (void*)listener, data);
 
-        if (server_id == 0) {
+        pthread_join((pthread_t)&server, NULL);
+        if (server_success == 0) {
                 return server;
         } else {
                 fprintf(stderr, "Server thread error");
@@ -53,7 +55,7 @@ int get_socket(int pt)
         /* Initialize a socket and bind it, returning the socket ID */
         
         struct addrinfo hints, *servinfo;
-        int sock_fd;
+        int sock_fd, status;
         char port;
 
         /* Setup for the socket */
@@ -91,31 +93,31 @@ void listener(void *data)
 {
         /* Accepts connections from clients and spins of a thread to communicate */
         /* with it */
-        
+
         struct sockaddr_storage *client_addr;
         struct client *cl;
         struct listener_data *ldata;
-        int client_len, client_fd;
+        int client_len, *client_fd;
 
         ldata = (struct listener_data*)data;
-        listen(ldata->socket, ldata->backlog);
+        
+        if (listen(ldata->socket, ldata->backlog) == -1) {
+                fprintf(stderr, "Listening error");
+        }
         
         while(1) {
-
                 client_len = sizeof(client_addr);
                 client_addr = (struct sockaddr_storage *) malloc(client_len);
-                client_fd = accept(ldata->socket, (struct sockaddr *)client_addr, &client_len);
+                client_fd = (int *)malloc(sizeof(client_fd));
+                *client_fd = accept(ldata->socket, (struct sockaddr *)client_addr, &client_len);
 
-                if (client_fd == -1) {
+                if (*client_fd == -1) {
                         fprintf(stderr, "Invalid client socket address");
                         continue;
                 }
 
-                cl = (struct client *) malloc(sizeof(struct client));
-                cl->socket = client_fd;
-                cl->client_addr = client_addr;
-
                 pthread_t *receiver = (pthread_t *) malloc(sizeof(pthread_t));
-                int thd = pthread_create(receiver, NULL, ldata->responder, (void *)cl);
+                int thd = pthread_create(receiver, NULL, ldata->responder, (void *)client_fd);
         }
+        fprintf(stdout, "Finishing Listening");
 }
