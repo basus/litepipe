@@ -43,8 +43,8 @@ void* echo_server(void *conf)
 int main()
 {
         pthread_t *server;
-        server = lp_spawn(ECHO_PORT, &echo_server, ECHO_BACKLOG);
-        if (server != 0) {
+        server = lp_spawn(ECHO_PORT, ECHO_BACKLOG, &echo_server);
+        if (server != -1) {
                 printf("Echo server running successfully");
                 fflush(stdout);
         }

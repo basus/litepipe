@@ -29,7 +29,7 @@
 
 #include "litepipe.h"
 
-pthread_t *lp_spawn(int port, void* (*handler)(void*), int backlog)
+pthread_t *lp_spawn(int port, int backlog, void* (*handler)(void*))
 {
         /* Creates a socket on the given port and then spawns a listener for
            it using the given function.  */
@@ -41,6 +41,10 @@ pthread_t *lp_spawn(int port, void* (*handler)(void*), int backlog)
 
         /* Create a socket for the port */
         socket = lp_get_socket(port);
+        if (socket == -1) {
+                fprintf(stderr, "Could not create or bind socket");
+                return 0;
+        }
 
         /* Create a structure to hold data required by the listener */
         rsp = (struct responder *) malloc(sizeof(*rsp));
@@ -78,7 +82,7 @@ int lp_get_socket(int pt)
 
         if ((status = getaddrinfo(NULL, &port, &hints, &servinfo)) != 0) {
                 fprintf(stderr, "Address fetch error %s", gai_strerror(status));
-                exit(1);
+                return -1;
         }
 
         /* Create the socket and check for errors */
@@ -86,13 +90,13 @@ int lp_get_socket(int pt)
 
         if (sock_fd <= 0) {
                 fprintf(stderr, "Fatal: Server thread error");
-                exit(1);
+                return -1;
         }
 
         /* Bind the socket */
         if (bind(sock_fd, servinfo->ai_addr, servinfo->ai_addrlen) != 0) {
                 fprintf(stderr, "Fatal: Socket binding error");
-                exit(1);
+                return -1;
         }
         
         freeaddrinfo(servinfo);        // Done with this information

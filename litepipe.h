@@ -28,6 +28,6 @@ struct responder {
 };
 
 // Functions
-pthread_t *lp_spawn(int port, void*(*handler)(void*), int backlog);
+pthread_t *lp_spawn(int port, int backlog, void*(*handler)(void*));
 void lp_listener(void *data);
 #endif
