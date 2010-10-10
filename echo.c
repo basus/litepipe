@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "server.h"
+#include "litepipe.h"
 
 #define BUFSIZE 1024
 #define ECHO_PORT 20110
@@ -42,8 +42,12 @@ void* echo_server(void *conf)
 
 int main()
 {
-        if (lp_spawn(ECHO_PORT, &echo_server, ECHO_BACKLOG) != 0) {
-                printf("Echo server running on port %d\n", ECHO_PORT);
+        pthread_t *server;
+        server = lp_spawn(ECHO_PORT, &echo_server, ECHO_BACKLOG);
+        if (server != 0) {
+                printf("Echo server running successfully");
+                fflush(stdout);
         }
+        pthread_join(*server);
         return 0;
 }

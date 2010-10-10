@@ -1,11 +1,11 @@
 
 CFLAGS = 
 
-echo: echo.c server.o
-	gcc $(CFLAGS) -o echopipe echo.c server.o -lpthread
+echo: echo.c litepipe.o
+	gcc $(CFLAGS) -o echopipe echo.c litepipe.o -lpthread
 
-server: server.c 
-	gcc $(CFLAGS) -c -o server.o server.c -lpthread
+litepipe: litepipe.c 
+	gcc $(CFLAGS) -c -o litepipe.o litepipe.c -lpthread
 
 clean:
 	rm *.o

@@ -17,11 +17,17 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#ifndef __SERVER_H__
+#define __SERVER_H__
 
-#ifndef __LITEPIPE_H__
-#define __LITEPIPE_H__
 
-#include "server.h"
-#include "client.h"
+// Structs
+struct responder {
+        int socket, backlog;
+        void* (*handler) (void*);
+};
 
+// Functions
+pthread_t *lp_spawn(int port, void*(*handler)(void*), int backlog);
+void lp_listener(void *data);
 #endif
